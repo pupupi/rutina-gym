@@ -1,5 +1,5 @@
 /* Service worker: guarda la app en el móvil para que abra sin conexión. */
-const CACHE = 'rutina-gym-v3';
+const CACHE = 'rutina-gym-v4';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {

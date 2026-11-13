@@ -208,6 +208,11 @@ nav button.next::after{top:-8px;right:4px}
 .whist{font-size:.8rem;margin-top:6px;line-height:1.3}
 .prev{font-size:.84rem;margin:0 0 8px}
 .sets{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.rgrp{display:inline-flex;align-items:center;gap:4px}
+.rstep{width:30px;height:30px;border-radius:50%;border:2px solid var(--accent);background:transparent;color:var(--accent);font:700 1.05rem/1 Barlow,Arial,sans-serif;cursor:pointer;padding:0}
+.rstep:disabled{opacity:.35;cursor:default}
+.rreset{border:0;background:transparent;color:var(--muted);font:500 .82rem Barlow,Arial,sans-serif;cursor:pointer;padding:4px 2px;text-decoration:underline}
+.rreset[hidden]{display:none}
 .sets.one{grid-template-columns:minmax(0,1fr)}
 .set{min-height:48px;padding:6px 8px;gap:4px;cursor:pointer;min-width:0}
 .set input[type=number]{width:48px;min-width:0;font-size:1.1rem}
@@ -378,7 +383,7 @@ const INC = { mancuerna:2, barra:2.5, maquina:2.5, discos:5, corporal:2.5 };
    work: { id: {hist:[{kg,date}], bar} }           peso de trabajo de cada ejercicio
    ses:  { 'AAAA-MM-DD:A': { r, d, t, x:{ id:{skip, sets:[{st:'d'|'s', kg}]} }, m:{__warm,__cardio}, cmin } }
    Una serie hecha guarda el peso con el que se hizo y ya no cambia aunque cambies el peso de trabajo. */
-let state = { work:{}, ses:{} };
+let state = { work:{}, ses:{}, rest:{} };
 let store = null, saveTimer = null;
 const $ = s => document.querySelector(s);
 function localDate(d){ d = d || new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -387,7 +392,11 @@ const fmt = v => Number(v).toLocaleString('es-ES');
 const fdate = s => { const [y,m,d] = s.split('-'); return d+'/'+m; };
 const WD = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 const wday = s => { const [y,m,d] = s.split('-').map(Number); return WD[new Date(y,m-1,d).getDay()]; };
-const restSecs = rest => rest.includes('min') ? parseFloat(rest)*60 : parseFloat(rest);
+const restSecs = rest => typeof rest === 'number' ? rest : rest.includes('min') ? parseFloat(rest)*60 : parseFloat(rest);
+/* Descanso de un hueco: el que hayas elegido (se recuerda) o el del programa */
+const REST_STEP = 15, REST_MIN = 15, REST_MAX = 300;
+const slotRest = slotDef => (state.rest && state.rest[slotDef.k]) || restSecs(slotDef.rest);
+const fmtRest = s => s < 60 ? s + ' s' : (s % 60 ? Math.floor(s/60) + ':' + String(s%60).padStart(2,'0') + ' min' : (s/60) + ' min');
 
 function setStatus(t){ const el = $('#status'); if (el) el.textContent = t; }
 function scheduleSave(){
@@ -524,12 +533,13 @@ function render(){
   const ses = state.ses[sesKey(rk)] || {r:rk, d:today, t:0, x:{}, m:{}};
   const S = () => getSes(rk);   // crea la sesión solo cuando se marca algo
 
+  const ses0 = state.ses[sesKey(rk)] || {x:{}};
   /* Cabecera */
   const head = document.createElement('div'); head.className = 'dayhead';
   head.innerHTML = '<h2></h2><p></p>';
   head.querySelector('h2').textContent = rk + ' · ' + routine.title;
   let secs = 0;
-  for (const it of routine.items) secs += it.s*45 + (it.s-1)*restSecs(it.rest) + 90;
+  for (const it of routine.items){ const ns = slotSets(it, ((ses0.x||{})[it.k]||{}).use); secs += ns*45 + (ns-1)*slotRest(it) + 90; }
   const pesas = Math.round(secs/60/5)*5;
   const totalMin = WARM_MIN + pesas + routine.cardio.min;
   const hh = Math.floor(totalMin/60), mm = totalMin % 60;
@@ -651,8 +661,35 @@ function render(){
     meta.querySelector('b').textContent = isReps ? it.s + ' serie ' + it.r : it.s + ' × ' + it.r;
     meta.querySelector('span').title = isReps ? it.s + ' serie con todas las repeticiones que puedas' : it.s + ' series de ' + it.r + ' repeticiones';
     const tb = document.createElement('button'); tb.type = 'button'; tb.className = 'timer';
-    tb.textContent = '⏱ ' + it.rest; tb.setAttribute('aria-label','Descanso de ' + it.rest); tb.addEventListener('click', () => startTimer(tb, it.rest));
-    meta.append(tb); sec.appendChild(meta);
+    const defRest = restSecs(slotDef.rest);
+    let restNow = slotRest(slotDef);
+    tb.addEventListener('click', () => startTimer(tb, restNow));
+    const rm = document.createElement('button'); rm.type = 'button'; rm.className = 'rstep'; rm.textContent = '−';
+    const rp = document.createElement('button'); rp.type = 'button'; rp.className = 'rstep'; rp.textContent = '+';
+    const rr = document.createElement('button'); rr.type = 'button'; rr.className = 'rreset';
+    rm.setAttribute('aria-label','Menos descanso'); rp.setAttribute('aria-label','Más descanso');
+    const paintRest = () => {
+      const lbl = '⏱ ' + fmtRest(restNow);
+      tb.dataset.label = lbl;
+      if (!tb.classList.contains('run')) tb.textContent = lbl;
+      tb.setAttribute('aria-label','Descanso de ' + fmtRest(restNow) + '. Pulsa para empezar');
+      rm.disabled = restNow <= REST_MIN; rp.disabled = restNow >= REST_MAX;
+      rr.hidden = restNow === defRest;
+      rr.textContent = '↺ ' + fmtRest(defRest);
+      rr.title = 'Volver al descanso del programa (' + fmtRest(defRest) + ')';
+    };
+    const setRest = v => {
+      restNow = Math.min(REST_MAX, Math.max(REST_MIN, v));
+      state.rest = state.rest || {};
+      if (restNow === defRest) delete state.rest[slotDef.k]; else state.rest[slotDef.k] = restNow;
+      paintRest(); scheduleSave();
+    };
+    rm.addEventListener('click', () => setRest(restNow - REST_STEP));
+    rp.addEventListener('click', () => setRest(restNow + REST_STEP));
+    rr.addEventListener('click', () => setRest(defRest));
+    const rgrp = document.createElement('span'); rgrp.className = 'rgrp'; rgrp.append(rm, tb, rp);
+    paintRest();
+    meta.append(rgrp, rr); sec.appendChild(meta);
 
     const p = document.createElement('p'); p.className = 'tip'; p.textContent = it.tip; sec.appendChild(p);
 
@@ -777,7 +814,7 @@ function render(){
         }
         touch(ses); paintAll(); scheduleSave();
         // Al completar una serie arranca el descanso de este ejercicio
-        if (c.checked) restartTimer(tb, it.rest);
+        if (c.checked) restartTimer(tb, restNow);
       });
       s.lpAction = () => {
         const ses = S(); const e = getEx(ses, slot);
@@ -866,7 +903,7 @@ function render(){
     '<li><b>Máquina ocupada o estropeada:</b> pulsa el botón de flechas ⇄ y elige otra opción del mismo grupo. Solo cambia para la sesión de hoy; la próxima vez vuelve a salir la principal.</li>' +
     '<li><b>Para tonificar</b> lo que marca la diferencia es ir subiendo peso poco a poco y acompañarlo de la alimentación: una ligera reducción de calorías y proteína en cada comida (unos 1,6 g por kg de peso al día, en tu caso unos 130 g).</li>' +
     '<li><b>Si no llegas</b> al número bajo del rango en dos sesiones seguidas, baja un escalón de peso.</li>' +
-    '<li><b>Descansos:</b> respétalos en los ejercicios grandes (2 min); en los pequeños puedes ir algo más rápido.</li>' +
+    '<li><b>Descansos:</b> respétalos en los ejercicios grandes (2 min); en los pequeños puedes ir algo más rápido. Con <b>−</b> y <b>+</b> junto al reloj lo cambias de 15 en 15 s; se recuerda para la próxima vez que hagas esa rutina, y con ↺ vuelves al del programa.</li>' +
     '<li><b>Bici después de las pesas</b>, no antes: así llegas fresco a los ejercicios de fuerza.</li>' +
     '<li><b>Cada 6-8 semanas</b>, haz una semana más suave (2 series por ejercicio en vez de 3-4) para recuperar.</li>' +
     '</ul>';
@@ -1058,7 +1095,7 @@ function importData(file){
     try{
       const obj = JSON.parse(r.result);
       const d = obj && obj.datos ? obj.datos : obj;
-      if (!d || typeof d !== 'object' || (!d.ses && !d.work)) throw new Error('formato');
+      if (!d || typeof d !== 'object' || (!d.ses && !d.work && !d.rest)) throw new Error('formato');
       state = clean(d);
       if (store) store.save(state);
       render();
@@ -1071,7 +1108,7 @@ function importData(file){
 /* ===================== GUARDADO ===================== */
 function clean(s){
   s = s && typeof s === 'object' ? s : {};
-  const out = { work: s.work || {}, ses: s.ses || {} };
+  const out = { work: s.work || {}, ses: s.ses || {}, rest: s.rest || {} };
   // Conserva las sesiones de los últimos 120 días (máx. 80)
   const cutoff = localDate(new Date(Date.now() - 120*864e5));
   const keys = Object.keys(out.ses).filter(k => k.slice(0,10) >= cutoff).sort().reverse().slice(0, 80);
