@@ -208,6 +208,16 @@ nav button.next::after{top:-8px;right:4px}
 .whist{font-size:.8rem;margin-top:6px;line-height:1.3}
 .prev{font-size:.84rem;margin:0 0 8px}
 .sets{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.fsum{display:none;margin:4px 0 0;color:var(--muted);font:500 .95rem Barlow,Arial,sans-serif}
+.block.folded > :not(.foldhead):not(.fsum){display:none}
+.block.folded .fsum{display:block}
+.block.folded .links{display:none}
+.block.folded{padding-top:10px;padding-bottom:10px}
+.foldhead.canfold{cursor:pointer}
+.chev{display:none;margin-left:6px;color:var(--muted);font-size:1rem;transition:transform .2s}
+.foldhead.canfold .chev{display:inline-block}
+.block.folded .chev{transform:rotate(-90deg)}
+.extop .chev{align-self:center}
 .rgrp{display:inline-flex;align-items:center;gap:4px}
 .rstep{width:30px;height:30px;border-radius:50%;border:2px solid var(--accent);background:transparent;color:var(--accent);font:700 1.05rem/1 Barlow,Arial,sans-serif;cursor:pointer;padding:0}
 .rstep:disabled{opacity:.35;cursor:default}
@@ -481,6 +491,39 @@ function lastTime(id){
   return best;
 }
 
+/* ===================== PLEGADO ===================== */
+// Bloques terminados que has vuelto a abrir a mano (solo durante esta visita)
+const unfolded = new Set();
+/* Pliega o despliega un bloque terminado. head = zona que se toca para abrir/cerrar */
+function foldable(sec, head, key){
+  let want = false, timer = null, first = true;
+  const chev = document.createElement('span'); chev.className = 'chev'; chev.setAttribute('aria-hidden','true'); chev.textContent = '▾';
+  head.appendChild(chev);
+  const apply = () => {
+    const f = want && !unfolded.has(key);
+    sec.classList.toggle('folded', f);
+    head.setAttribute('aria-expanded', String(!f));
+  };
+  head.addEventListener('click', ev => {
+    if (!want || Date.now() - lpFiredAt < 600) return;
+    if (ev.target.closest('a,button:not(.badge),input,.alts')) return;
+    if (ev.target.closest('.badge') && !sec.classList.contains('folded')) return;
+    ev.preventDefault(); ev.stopImmediatePropagation();
+    if (unfolded.has(key)) unfolded.delete(key); else unfolded.add(key);
+    clearTimeout(timer); apply();
+  }, true);
+  head.classList.add('foldhead');
+  return done => {
+    const was = want; want = !!done;
+    if (!want) unfolded.delete(key);
+    clearTimeout(timer);
+    head.classList.toggle('canfold', want);
+    // Al terminar ahora mismo, espera un momento para que se vea la marca
+    if (want && !was && !first) timer = setTimeout(apply, 700); else apply();
+    first = false;
+  };
+}
+
 /* ===================== PULSACIÓN LARGA ===================== */
 const LP_MS = 550;
 let lp = null, lpFiredAt = 0;
@@ -595,8 +638,10 @@ function render(){
       if (s.m[key] === 's') delete s.m[key]; else s.m[key] = 's';
       touch(s); paintAll(); scheduleSave();
     };
+    const fold = foldable(sec, row, rk + ':' + key);
     painters.push(() => {
       const st = ((state.ses[sesKey(rk)]||{}).m||{})[key];
+      fold(st === 'd' || st === 's');
       b.textContent = st === 's' ? '✕ No' : st === 'd' ? '✓ Hecho' : 'Marcar';
       b.classList.toggle('full', st === 'd'); b.classList.toggle('sk', st === 's');
       sec.classList.toggle('complete', st === 'd'); sec.classList.toggle('skip', st === 's');
@@ -628,6 +673,8 @@ function render(){
     const links = document.createElement('span'); links.className = 'links'; links.append(a, swap);
     const ttl = document.createElement('div'); ttl.className = 'ttl'; ttl.append(h, links);
     top.classList.add('extop'); top.append(ttl, badge); sec.appendChild(top);
+    const fsum = document.createElement('p'); fsum.className = 'fsum'; sec.appendChild(fsum);
+    const fold = foldable(sec, top, rk + ':' + slot);
     if (isAlt){
       const al = document.createElement('p'); al.className = 'altnote';
       al.textContent = 'Alternativa a: ' + EX[slotDef.o[0]].n;
@@ -887,6 +934,15 @@ function render(){
       badge.setAttribute('aria-label', e.skip || !act ? 'No lo haces' : dn + ' de ' + act + ' series hechas. Pulsa para marcar o desmarcar todas');
       badge.classList.toggle('full', full); badge.classList.toggle('sk', !!e.skip || !act);
       sec.classList.toggle('complete', full);
+      // Resumen que se ve con el bloque plegado
+      const dn2 = (e.sets||[]).slice(0, it.s).filter(z => z && z.st === 'd');
+      if (e.skip || !act) fsum.textContent = 'No lo haces hoy';
+      else if (isReps) fsum.textContent = dn2.map(z => (z.reps ?? '—') + ' reps' + (z.kg ? ' con +' + fmt(z.kg) + ' kg' : '')).join(' · ');
+      else {
+        const kgs = dn2.map(z => z.kg == null ? '—' : fmt(z.kg));
+        fsum.textContent = kgs.length && kgs.every(k => k === kgs[0]) ? kgs.length + ' × ' + kgs[0] + (kgs[0] === '—' ? '' : ' kg') : kgs.join(' · ') + ' kg';
+      }
+      fold(full || !!e.skip || !act);
     });
     main.appendChild(sec);
   });
@@ -910,6 +966,7 @@ function render(){
     '<li><b>Para tonificar</b> lo que marca la diferencia es ir subiendo peso poco a poco y acompañarlo de la alimentación: una ligera reducción de calorías y proteína en cada comida (unos 1,6 g por kg de peso al día, en tu caso unos 130 g).</li>' +
     '<li><b>Si no llegas</b> al número bajo del rango en dos sesiones seguidas, baja un escalón de peso.</li>' +
     '<li><b>Descansos:</b> respétalos en los ejercicios grandes (2 min); en los pequeños puedes ir algo más rápido. Con <b>−</b> y <b>+</b> junto al reloj lo cambias de 15 en 15 s; se recuerda para la próxima vez que hagas esa rutina, y con ↺ vuelves al del programa.</li>' +
+    '<li><b>Ejercicios terminados:</b> se pliegan solos para que veas lo que te queda. Toca el título para abrirlos y revisarlos, y otra vez para cerrarlos.</li>' +
     '<li><b>Bici después de las pesas</b>, no antes: así llegas fresco a los ejercicios de fuerza.</li>' +
     '<li><b>Cada 6-8 semanas</b>, haz una semana más suave (2 series por ejercicio en vez de 3-4) para recuperar.</li>' +
     '</ul>';
