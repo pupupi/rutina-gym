@@ -208,6 +208,15 @@ nav button.next::after{top:-8px;right:4px}
 .whist{font-size:.8rem;margin-top:6px;line-height:1.3}
 .prev{font-size:.84rem;margin:0 0 8px}
 .sets{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.sclock{display:flex;align-items:center;gap:10px;margin:0 0 8px}
+.sc-main{flex:none;border:2px solid var(--accent);background:var(--accent);color:#fff;border-radius:999px;padding:5px 14px;font:700 .95rem Barlow,Arial,sans-serif;cursor:pointer;white-space:nowrap}
+.sclock.run .sc-main,.sclock.end .sc-main{background:transparent;color:var(--accent)}
+.sc-time{flex:1;min-width:0;font:700 1.25rem/1 "Barlow Condensed","Arial Narrow",sans-serif;font-variant-numeric:tabular-nums;color:var(--ink)}
+.sclock.pause .sc-time{color:var(--muted)}
+.sclock.end .sc-time{font:600 1rem Barlow,Arial,sans-serif;color:var(--done)}
+.sc-stop{flex:none;border:2px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:5px 12px;font:600 .9rem Barlow,Arial,sans-serif;cursor:pointer;white-space:nowrap}
+.sc-stop.armed{border-color:var(--skip);background:var(--skip);color:#fff}
+.sc-stop[hidden]{display:none}
 .fsum{display:none;margin:4px 0 0;color:var(--muted);font:500 .95rem Barlow,Arial,sans-serif}
 .block.folded > :not(.foldhead):not(.fsum){display:none}
 .block.folded .fsum{display:block}
@@ -218,6 +227,7 @@ nav button.next::after{top:-8px;right:4px}
 .foldhead.canfold .chev{display:inline-block}
 .block.folded .chev{transform:rotate(-90deg)}
 .extop .chev{align-self:center}
+.meta .links{margin-left:auto}
 .rgrp{display:inline-flex;align-items:center;gap:4px}
 .rstep{width:30px;height:30px;border-radius:50%;border:2px solid var(--accent);background:transparent;color:var(--accent);font:700 1.05rem/1 Barlow,Arial,sans-serif;cursor:pointer;padding:0}
 .rstep:disabled{opacity:.35;cursor:default}
@@ -491,6 +501,20 @@ function lastTime(id){
   return best;
 }
 
+/* ===================== CRONÓMETRO DEL ENTRENO =====================
+   ses.clk = {acc: ms acumulados, run: momento en que se reanudó (0 si parado), end: terminado}
+   Se basa en la hora real, así que sigue contando aunque cierres la app o bloquees el móvil. */
+let clkTick = null;
+const clkMs = c => !c ? 0 : (c.acc || 0) + (c.run ? Date.now() - c.run : 0);
+function fmtClock(ms){
+  const t = Math.floor(ms/1000), h = Math.floor(t/3600), m = Math.floor(t%3600/60), sec = t%60;
+  return (h ? h + ':' + String(m).padStart(2,'0') : String(m)) + ':' + String(sec).padStart(2,'0');
+}
+function fmtDur(ms){
+  const m = Math.round(ms/60000), h = Math.floor(m/60);
+  return h ? h + ' h' + (m%60 ? ' ' + m%60 + ' min' : '') : m + ' min';
+}
+
 /* ===================== PLEGADO ===================== */
 // Bloques terminados que has vuelto a abrir a mano (solo durante esta visita)
 const unfolded = new Set();
@@ -615,7 +639,52 @@ function render(){
   /* Barra de progreso de la cabecera */
   const prog = document.createElement('div');
   prog.innerHTML = '<div class="chips"></div><div class="pline"><div class="progress"><i></i></div><div class="ptext"></div></div>';
-  const hp = $('#hprog'); hp.innerHTML = ''; hp.appendChild(prog);
+  const hp = $('#hprog'); hp.innerHTML = '';
+  hp.appendChild(sessionClock()); hp.appendChild(prog);
+
+  function sessionClock(){
+    const box = document.createElement('div'); box.className = 'sclock';
+    const main = document.createElement('button'); main.type = 'button'; main.className = 'sc-main';
+    const time = document.createElement('span'); time.className = 'sc-time'; time.setAttribute('aria-live','off');
+    const stop = document.createElement('button'); stop.type = 'button'; stop.className = 'sc-stop';
+    box.append(main, time, stop);
+    let armed = null;
+    const clk = () => (state.ses[sesKey(rk)] || {}).clk;
+    const save = () => { const s = S(); touch(s); scheduleSave(); paint(); };
+    main.addEventListener('click', () => {
+      const s = S(); const c = s.clk = s.clk || {acc:0, run:0};
+      if (c.end){ delete c.end; c.run = Date.now(); }           // reabrir un entreno terminado
+      else if (c.run){ c.acc += Date.now() - c.run; c.run = 0; } // pausar
+      else c.run = Date.now();                                   // empezar o seguir
+      save();
+    });
+    stop.addEventListener('click', () => {
+      if (!armed){
+        stop.textContent = '¿Terminar?'; stop.classList.add('armed');
+        armed = setTimeout(() => { armed = null; paint(); }, 3000); return;
+      }
+      clearTimeout(armed); armed = null;
+      const s = S(); const c = s.clk; if (!c) return;
+      if (c.run){ c.acc += Date.now() - c.run; c.run = 0; }
+      c.end = true; save();
+    });
+    function paint(){
+      const c = clk(), ms = clkMs(c);
+      box.className = 'sclock' + (!c ? '' : c.end ? ' end' : c.run ? ' run' : ' pause');
+      if (!c){ main.textContent = '▶ Empezar entreno'; time.textContent = ''; stop.hidden = true; }
+      else if (c.end){ main.textContent = '↺ Seguir'; time.textContent = '✓ Entreno: ' + fmtDur(ms); stop.hidden = true; }
+      else {
+        main.textContent = c.run ? '⏸ Pausar' : '▶ Seguir';
+        time.textContent = fmtClock(ms) + (c.run ? '' : ' · en pausa');
+        stop.hidden = false; if (!armed){ stop.textContent = '■ Terminar'; stop.classList.remove('armed'); }
+      }
+      main.setAttribute('aria-label', !c ? 'Empezar a contar el tiempo del entreno' : c.end ? 'Seguir contando el entreno' : c.run ? 'Pausar el tiempo del entreno' : 'Seguir contando el tiempo del entreno');
+    }
+    clearInterval(clkTick);
+    clkTick = setInterval(() => { const c = clk(); if (c && c.run) paint(); }, 1000);
+    paint();
+    return box;
+  }
 
   const painters = [];
 
@@ -671,7 +740,7 @@ function render(){
     swap.className = 'swapbtn iconbtn'; swap.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4 3 8l4 4"/><path d="M3 8h14"/><path d="m17 20 4-4-4-4"/><path d="M21 16H7"/></svg>'; swap.setAttribute('aria-label','Cambiar por otro ejercicio'); swap.setAttribute('aria-expanded','false');
     swap.title = 'Elegir otro ejercicio equivalente si la máquina está ocupada o estropeada';
     const links = document.createElement('span'); links.className = 'links'; links.append(a, swap);
-    const ttl = document.createElement('div'); ttl.className = 'ttl'; ttl.append(h, links);
+    const ttl = document.createElement('div'); ttl.className = 'ttl'; ttl.append(h);
     top.classList.add('extop'); top.append(ttl, badge); sec.appendChild(top);
     const fsum = document.createElement('p'); fsum.className = 'fsum'; sec.appendChild(fsum);
     const fold = foldable(sec, top, rk + ':' + slot);
@@ -701,7 +770,6 @@ function render(){
     swap.addEventListener('click', () => {
       alts.hidden = !alts.hidden; swap.setAttribute('aria-expanded', String(!alts.hidden));
     });
-    sec.appendChild(alts);
 
     const meta = document.createElement('div'); meta.className = 'meta';
     meta.innerHTML = '<span><b></b></span>';
@@ -736,7 +804,8 @@ function render(){
     rr.addEventListener('click', () => setRest(defRest));
     const rgrp = document.createElement('span'); rgrp.className = 'rgrp'; rgrp.append(rm, tb, rp);
     paintRest();
-    meta.append(rgrp, rr); sec.appendChild(meta);
+    meta.append(rgrp, rr, links); sec.appendChild(meta);
+    sec.appendChild(alts);
 
     const p = document.createElement('p'); p.className = 'tip'; p.textContent = it.tip; sec.appendChild(p);
 
@@ -966,6 +1035,7 @@ function render(){
     '<li><b>Para tonificar</b> lo que marca la diferencia es ir subiendo peso poco a poco y acompañarlo de la alimentación: una ligera reducción de calorías y proteína en cada comida (unos 1,6 g por kg de peso al día, en tu caso unos 130 g).</li>' +
     '<li><b>Si no llegas</b> al número bajo del rango en dos sesiones seguidas, baja un escalón de peso.</li>' +
     '<li><b>Descansos:</b> respétalos en los ejercicios grandes (2 min); en los pequeños puedes ir algo más rápido. Con <b>−</b> y <b>+</b> junto al reloj lo cambias de 15 en 15 s; se recuerda para la próxima vez que hagas esa rutina, y con ↺ vuelves al del programa.</li>' +
+    '<li><b>Tiempo del entreno:</b> pulsa <b>▶ Empezar entreno</b> al llegar. Puedes pausarlo y seguir; sigue contando aunque cierres la app. Al acabar pulsa <b>■ Terminar</b> (dos veces, para no hacerlo sin querer) y el tiempo queda guardado en el historial.</li>' +
     '<li><b>Ejercicios terminados:</b> se pliegan solos para que veas lo que te queda. Toca el título para abrirlos y revisarlos, y otra vez para cerrarlos.</li>' +
     '<li><b>Bici después de las pesas</b>, no antes: así llegas fresco a los ejercicios de fuerza.</li>' +
     '<li><b>Cada 6-8 semanas</b>, haz una semana más suave (2 series por ejercicio en vez de 3-4) para recuperar.</li>' +
@@ -981,7 +1051,7 @@ function render(){
     for (const s of hs){
       const li = document.createElement('li');
       const a1 = document.createElement('span'); a1.textContent = wday(s.d) + ' ' + fdate(s.d) + ' · ' + s.r + ' ' + R[s.r].title;
-      const a2 = document.createElement('span'); a2.textContent = score(s).pct + '%' + (s.cmin ? ' · bici ' + s.cmin + ' min' : '');
+      const a2 = document.createElement('span'); a2.textContent = score(s).pct + '%' + (s.clk && clkMs(s.clk) >= 60000 ? ' · ' + fmtDur(clkMs(s.clk)) : '') + (s.cmin ? ' · bici ' + s.cmin + ' min' : '');
       li.append(a1, a2); ul.appendChild(li);
     }
     main.appendChild(hb);
