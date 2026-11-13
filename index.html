@@ -563,7 +563,7 @@ function render(){
   let helpHidden = false; try{ helpHidden = localStorage.getItem('rutina-help-off') === '1'; }catch(e){}
   if (!helpHidden){
     const help = document.createElement('p'); help.className = 'help';
-    help.innerHTML = '<span>Toca una serie para marcarla hecha y arranca el descanso. <b>Mantén pulsado</b> un ejercicio o una serie para ponerlo en rojo (no lo haces, no cuenta).</span>';
+    help.innerHTML = '<span>Toca una serie para marcarla hecha y arranca el descanso (salvo en la última serie del ejercicio). <b>Mantén pulsado</b> un ejercicio o una serie para ponerlo en rojo (no lo haces, no cuenta).</span>';
     const x = document.createElement('button'); x.type = 'button'; x.className = 'hx'; x.textContent = '✕'; x.setAttribute('aria-label','Ocultar ayuda');
     x.addEventListener('click', () => { help.remove(); try{ localStorage.setItem('rutina-help-off','1'); }catch(e){} });
     help.appendChild(x); main.appendChild(help);
@@ -813,8 +813,14 @@ function render(){
           delete z.st;
         }
         touch(ses); paintAll(); scheduleSave();
-        // Al completar una serie arranca el descanso de este ejercicio
-        if (c.checked) restartTimer(tb, restNow);
+        // Al completar una serie arranca el descanso de este ejercicio,
+        // salvo que sea la última: entonces vas a la siguiente máquina
+        if (c.checked){
+          let left = false;
+          for (let j=0;j<it.s;j++){ const st = (e.sets[j]||{}).st; if (st !== 'd' && st !== 's') left = true; }
+          if (left) restartTimer(tb, restNow);
+          else if (timerInt && timerBtn === tb) stopTimer();
+        }
       });
       s.lpAction = () => {
         const ses = S(); const e = getEx(ses, slot);
