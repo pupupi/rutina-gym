@@ -208,6 +208,7 @@ nav button.next::after{top:-8px;right:4px}
 .whist{font-size:.8rem;margin-top:6px;line-height:1.3}
 .prev{font-size:.84rem;margin:0 0 8px}
 .sets{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.sets.one{grid-template-columns:minmax(0,1fr)}
 .set{min-height:48px;padding:6px 8px;gap:4px;cursor:pointer;min-width:0}
 .set input[type=number]{width:48px;min-width:0;font-size:1.1rem}
 .set label{margin-right:auto}
@@ -250,6 +251,7 @@ const EX = {
   // Espalda
   'jalon':            {n:'Jalón al pecho (máquina)', eq:'maquina', tip:'Agarre algo más ancho que los hombros. Tira hacia la parte alta del pecho sin balancear el cuerpo.', q:'lat pulldown machine exercise'},
   'jalon-neutro':     {n:'Jalón con agarre estrecho neutro', eq:'maquina', tip:'Agarre en V. Lleva el asa hacia el esternón sacando pecho.', q:'close grip neutral lat pulldown exercise'},
+  'dominadas':        {n:'Dominadas en barra', eq:'corporal', s:1, r:'al máximo', reps:true, tip:'Una sola serie: haz todas las repeticiones que puedas con buena técnica, de brazos casi estirados a barbilla por encima de la barra. Apunta las repeticiones. Cuando pases de 12, añade 2,5 kg con cinturón o mancuerna entre los pies.', q:'pull up exercise'},
   'dominadas-asist':  {n:'Dominadas asistidas (máquina)', eq:'maquina', tip:'Aquí el peso AYUDA: cuanto menos pongas, más difícil. Sube hasta que la barbilla pase el agarre.', q:'assisted pull up machine exercise'},
   'pullover-polea':   {n:'Pullover en polea alta', eq:'maquina', tip:'Brazos casi rectos; baja la barra hasta los muslos trabajando la espalda, no los brazos.', q:'cable straight arm pulldown exercise'},
   'remo-mancuerna':   {n:'Remo con mancuerna a una mano', eq:'mancuerna', tip:'Mano y rodilla apoyadas en el banco, espalda plana. Lleva el codo hacia la cadera.', q:'one arm dumbbell row exercise'},
@@ -331,7 +333,7 @@ const R = {
   B: { title:'Espalda + femoral', short:'Espalda', color:'--b',
     cardio:{ min:40, text:'40 min con intervalos: 10 min suave + 6 × (1 min fuerte a 8/10 + 2 min suave) + 12 min suave.' },
     items:[
-      {k:'B1', s:4, r:'10-12', rest:'90 s', o:['jalon','jalon-neutro','dominadas-asist','pullover-polea']},
+      {k:'B1', s:4, r:'10-12', rest:'90 s', o:['jalon','dominadas','jalon-neutro','dominadas-asist','pullover-polea']},
       {k:'B2', s:3, r:'10-12', rest:'2 min', o:['peso-muerto-rumano','pmr-manc','pull-through','hiperext']},
       {k:'B3', s:3, r:'10-12 por brazo', rest:'90 s', o:['remo-mancuerna','remo-maquina','remo-polea','remo-barra']},
       {k:'B4', s:3, r:'12-15', rest:'60 s', o:['curl-femoral','curl-femoral-sent','curl-femoral-pie','curl-fitball']},
@@ -418,7 +420,8 @@ function score(ses){
     const e = x[it.k] || {};
     if (e.skip){ parts.push({key:it.k, f:0, skip:true}); continue; }
     let act = 0, dn = 0;
-    for (let i=0;i<it.s;i++){ const st = ((e.sets||[])[i]||{}).st; if (st === 's') continue; act++; if (st === 'd') dn++; }
+    const ns = slotSets(it, e.use);
+    for (let i=0;i<ns;i++){ const st = ((e.sets||[])[i]||{}).st; if (st === 's') continue; act++; if (st === 'd') dn++; }
     if (!act){ parts.push({key:it.k, f:0, skip:true}); continue; }
     const f = dn/act; if (dn) any = true;
     units++; sum += f; if (f >= 1) complete++;
@@ -447,6 +450,11 @@ function currentRoutine(){
 }
 
 /* Últimos pesos hechos de un ejercicio (sesión anterior a hoy) */
+/* Series de un hueco: algunos ejercicios (p. ej. dominadas) tienen las suyas propias */
+function slotSets(slotDef, use){
+  const id = (use && EX[use] && slotDef.o.includes(use)) ? use : slotDef.o[0];
+  return EX[id].s || slotDef.s;
+}
 const SLOT_MAIN = {};
 for (const k of Object.keys(R)) for (const it of R[k].items) SLOT_MAIN[it.k] = it.o[0];
 function lastTime(id){
@@ -455,9 +463,10 @@ function lastTime(id){
     if (s.d >= today) continue;
     for (const [slot, e] of Object.entries(s.x || {})){
       if (!e || e.skip || (e.use || SLOT_MAIN[slot]) !== id) continue;
-      const kgs = (e.sets||[]).filter(z => z && z.st === 'd').map(z => z.kg);
+      const dn = (e.sets||[]).filter(z => z && z.st === 'd');
+      const kgs = dn.map(z => z.kg);
       if (!kgs.length) continue;
-      if (!best || s.d > best.d || (s.d === best.d && s.t > best.t)) best = {d:s.d, t:s.t, kgs};
+      if (!best || s.d > best.d || (s.d === best.d && s.t > best.t)) best = {d:s.d, t:s.t, kgs, reps:dn.map(z => z.reps)};
     }
   }
   return best;
@@ -593,7 +602,8 @@ function render(){
     const slot = slotDef.k;
     const used = (ses.x[slot] || {}).use;
     const id = (used && EX[used] && slotDef.o.includes(used)) ? used : slotDef.o[0];
-    const it = Object.assign({}, EX[id], {s:slotDef.s, r:slotDef.r, rest:slotDef.rest});
+    const it = Object.assign({}, EX[id], {s:EX[id].s || slotDef.s, r:EX[id].r || slotDef.r, rest:slotDef.rest});
+    const isReps = !!EX[id].reps;
     const isAlt = id !== slotDef.o[0];
     const sec = document.createElement('section'); sec.className = 'block'; sec.dataset.lp = '1';
     const top = document.createElement('div'); top.className = 'row';
@@ -615,11 +625,11 @@ function render(){
     }
     const alts = document.createElement('div'); alts.className = 'alts'; alts.hidden = true;
     const ah = document.createElement('p'); ah.className = 'alth';
-    ah.textContent = 'Elige un ejercicio equivalente (mismas series y repeticiones). Cada uno guarda su propio peso.';
+    ah.textContent = 'Elige un ejercicio equivalente (mismas series y repeticiones, salvo que se indique otra cosa). Cada uno guarda su propio peso.';
     alts.appendChild(ah);
     slotDef.o.forEach((oid, oi) => {
       const ob = document.createElement('button'); ob.type = 'button'; ob.className = 'alt' + (oid === id ? ' cur' : '');
-      ob.textContent = EX[oid].n + (oi === 0 ? ' (principal)' : '');
+      ob.textContent = EX[oid].n + (oi === 0 ? ' (principal)' : '') + (EX[oid].s ? ' · ' + EX[oid].s + ' serie ' + (EX[oid].r || '') : '');
       ob.setAttribute('aria-pressed', oid === id ? 'true' : 'false');
       ob.addEventListener('click', () => {
         if (oid === id){ alts.hidden = true; swap.setAttribute('aria-expanded','false'); return; }
@@ -638,8 +648,8 @@ function render(){
 
     const meta = document.createElement('div'); meta.className = 'meta';
     meta.innerHTML = '<span><b></b></span>';
-    meta.querySelector('b').textContent = it.s + ' × ' + it.r;
-    meta.querySelector('span').title = it.s + ' series de ' + it.r + ' repeticiones';
+    meta.querySelector('b').textContent = isReps ? it.s + ' serie ' + it.r : it.s + ' × ' + it.r;
+    meta.querySelector('span').title = isReps ? it.s + ' serie con todas las repeticiones que puedas' : it.s + ' series de ' + it.r + ' repeticiones';
     const tb = document.createElement('button'); tb.type = 'button'; tb.className = 'timer';
     tb.textContent = '⏱ ' + it.rest; tb.setAttribute('aria-label','Descanso de ' + it.rest); tb.addEventListener('click', () => startTimer(tb, it.rest));
     meta.append(tb); sec.appendChild(meta);
@@ -660,7 +670,7 @@ function render(){
     const wh = document.createElement('div'); wh.className = 'whist';
     const showHist = () => {
       const hh = (state.work[id] && state.work[id].hist) || [];
-      if (!hh.length){ wh.textContent = 'Primera vez: un peso que te deje 1-2 repeticiones en la recámara.'; return; }
+      if (!hh.length){ wh.textContent = isReps ? 'Sin lastre: deja 0. Pon peso extra solo cuando pases de 12 repeticiones.' : 'Primera vez: un peso que te deje 1-2 repeticiones en la recámara.'; return; }
       const last = hh[hh.length-1];
       wh.textContent = (hh.length > 1 ? hh.slice(-5).map(x => fmt(x.kg)).join(' → ') + ' kg · ' : '') + 'desde ' + fdate(last.date);
     };
@@ -720,27 +730,37 @@ function render(){
     if (lt){
       const pv = document.createElement('p'); pv.className = 'prev';
       pv.innerHTML = 'Última vez (' + wday(lt.d) + ' ' + fdate(lt.d) + '): <b></b>';
-      pv.querySelector('b').textContent = lt.kgs.map(k => k == null ? '—' : fmt(k)).join(' · ') + ' kg';
+      pv.querySelector('b').textContent = isReps
+        ? lt.reps.map((r, j) => (r == null ? '—' : r) + ' reps' + (lt.kgs[j] ? ' con +' + fmt(lt.kgs[j]) + ' kg' : '')).join(' · ')
+        : lt.kgs.map(k => k == null ? '—' : fmt(k)).join(' · ') + ' kg';
       sec.appendChild(pv);
     }
 
     /* Series */
-    const grid = document.createElement('div'); grid.className = 'sets';
+    const grid = document.createElement('div'); grid.className = 'sets' + (isReps ? ' one' : '');
+    const lastReps = lt && lt.reps && lt.reps.find(r => r != null);
+    const repsDefault = lastReps != null ? lastReps : 10;
     const tiles = [];
     for (let i=0;i<it.s;i++){
       const s = document.createElement('div'); s.className = 'set';
       const n = document.createElement('span'); n.className = 'n'; n.textContent = (i+1);
       const inp = document.createElement('input'); inp.type = 'number'; inp.inputMode = 'decimal'; inp.min = '0'; inp.step = '0.5';
-      inp.setAttribute('aria-label', it.n + ', serie ' + (i+1) + ', kg');
-      const l = document.createElement('label'); l.textContent = 'kg';
+      inp.setAttribute('aria-label', it.n + ', serie ' + (i+1) + (isReps ? ', repeticiones' : ', kg'));
+      if (isReps){ inp.step = '1'; inp.inputMode = 'numeric'; }
+      const l = document.createElement('label'); l.textContent = isReps ? 'reps' : 'kg';
       const lock = document.createElement('span'); lock.className = 'lock'; lock.textContent = '🔒'; lock.title = 'Peso fijado: la serie está hecha';
       const c = document.createElement('input'); c.type = 'checkbox'; c.setAttribute('aria-label', 'Serie ' + (i+1) + ' hecha');
       const no = document.createElement('span'); no.className = 'no'; no.textContent = 'NO';
       inp.addEventListener('change', () => {
         const ses = S(); const e = getEx(ses, slot); const z = e.sets[i] = e.sets[i] || {};
         if (z.st === 'd') return;
-        z.kg = inp.value === '' ? null : Number(inp.value);
-        if (z.kg == null && !z.st) e.sets[i] = null;
+        if (isReps){
+          z.reps = inp.value === '' ? null : Math.round(Number(inp.value));
+          if (z.reps == null && !z.st) e.sets[i] = null;
+        } else {
+          z.kg = inp.value === '' ? null : Number(inp.value);
+          if (z.kg == null && !z.st) e.sets[i] = null;
+        }
         scheduleSave();
       });
       c.addEventListener('change', () => {
@@ -748,7 +768,10 @@ function render(){
         if (c.checked){
           z.st = 'd';
           // El peso se fija en el momento de completar la serie
-          z.kg = inp.value !== '' ? Number(inp.value) : wcur();
+          if (isReps){
+            z.reps = inp.value !== '' ? Math.round(Number(inp.value)) : repsDefault;
+            z.kg = wcur() || 0;
+          } else z.kg = inp.value !== '' ? Number(inp.value) : wcur();
         } else {
           delete z.st;
         }
@@ -782,9 +805,10 @@ function render(){
         t.c.checked = done;
         t.inp.readOnly = done || skip; t.c.disabled = skip || !!e.skip;
         t.lock.style.display = done ? '' : 'none';
-        if (done) t.inp.value = z.kg ?? '';
-        else if (document.activeElement !== t.inp) t.inp.value = z.kg ?? '';
-        t.inp.placeholder = w != null ? String(w) : '—';
+        const v = isReps ? z.reps : z.kg;
+        if (done) t.inp.value = v ?? '';
+        else if (document.activeElement !== t.inp) t.inp.value = v ?? '';
+        t.inp.placeholder = isReps ? String(repsDefault) : (w != null ? String(w) : '—');
       });
     }
 
@@ -796,7 +820,11 @@ function render(){
         const z = e.sets[i] = e.sets[i] || {};
         if (z.st === 's') continue;
         if (all) delete z.st;
-        else if (z.st !== 'd'){ z.st = 'd'; z.kg = tiles[i].inp.value !== '' ? Number(tiles[i].inp.value) : wcur(); }
+        else if (z.st !== 'd'){
+          z.st = 'd';
+          if (isReps){ z.reps = tiles[i].inp.value !== '' ? Math.round(Number(tiles[i].inp.value)) : repsDefault; z.kg = wcur() || 0; }
+          else z.kg = tiles[i].inp.value !== '' ? Number(tiles[i].inp.value) : wcur();
+        }
       }
       touch(ses); paintAll(); scheduleSave();
     });
