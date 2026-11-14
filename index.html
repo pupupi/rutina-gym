@@ -208,7 +208,10 @@ nav button.next::after{top:-8px;right:4px}
 .whist{font-size:.8rem;margin-top:6px;line-height:1.3}
 .prev{font-size:.84rem;margin:0 0 8px}
 .sets{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
-.sclock{display:flex;align-items:center;gap:10px;margin:0 0 8px}
+.dtitle{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.dtitle h2{flex:0 1 auto}
+.sclock{display:flex;align-items:center;gap:10px;margin:0}
+.sclock.run,.sclock.pause{flex:1 1 100%}
 .sc-main{flex:none;border:2px solid var(--accent);background:var(--accent);color:#fff;border-radius:999px;padding:5px 14px;font:700 .95rem Barlow,Arial,sans-serif;cursor:pointer;white-space:nowrap}
 .sclock.run .sc-main,.sclock.end .sc-main{background:transparent;color:var(--accent)}
 .sc-time{flex:1;min-width:0;font:700 1.25rem/1 "Barlow Condensed","Arial Narrow",sans-serif;font-variant-numeric:tabular-nums;color:var(--ink)}
@@ -603,7 +606,7 @@ function render(){
   const ses0 = state.ses[sesKey(rk)] || {x:{}};
   /* Cabecera */
   const head = document.createElement('div'); head.className = 'dayhead';
-  head.innerHTML = '<h2></h2><p></p>';
+  head.innerHTML = '<div class="dtitle"><h2></h2></div><p></p>';
   head.querySelector('h2').textContent = rk + ' · ' + routine.title;
   let secs = 0;
   for (const it of routine.items){ const ns = slotSets(it, ((ses0.x||{})[it.k]||{}).use); secs += ns*45 + (ns-1)*slotRest(it) + 90; }
@@ -640,7 +643,7 @@ function render(){
   const prog = document.createElement('div');
   prog.innerHTML = '<div class="chips"></div><div class="pline"><div class="progress"><i></i></div><div class="ptext"></div></div>';
   const hp = $('#hprog'); hp.innerHTML = '';
-  hp.appendChild(sessionClock()); hp.appendChild(prog);
+  head.querySelector('.dtitle').appendChild(sessionClock()); hp.appendChild(prog);
 
   function sessionClock(){
     const box = document.createElement('div'); box.className = 'sclock';
