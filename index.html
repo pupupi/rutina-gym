@@ -18,7 +18,7 @@
 <style>
 :root{
   --bg:#EDEFF2; --surface:#FFFFFF; --ink:#18202B; --muted:#5A6573; --line:#D5DAE1;
-  --a:#11808C; --b:#2456A6; --c:#C99A06; --d:#3E4A5C; --done:#2E8B57; --skip:#D32F2F; --field:#F5F7FA;
+  --a:#11808C; --b:#2456A6; --c:#C99A06; --d:#3E4A5C; --e:#7B3FA0; --f:#C2410C; --done:#2E8B57; --skip:#D32F2F; --field:#F5F7FA;
   --accent:var(--a);
   color-scheme:light;
   box-sizing:border-box;
@@ -28,7 +28,7 @@
 @media (prefers-color-scheme:dark){
   :root{
     --bg:#12161C; --surface:#1B212A; --ink:#E8ECF1; --muted:#9AA5B3; --line:#2C3542;
-    --a:#3FB6C2; --b:#5B8EE6; --c:#E3B52A; --d:#8A9AB0; --done:#4CB87D; --skip:#F0605A; --field:#232B36;
+    --a:#3FB6C2; --b:#5B8EE6; --c:#E3B52A; --d:#8A9AB0; --e:#B489DB; --f:#F08A4B; --done:#4CB87D; --skip:#F0605A; --field:#232B36;
     color-scheme:dark;
   }
 }
@@ -245,6 +245,10 @@ nav button.next::after{top:-8px;right:4px}
 details.guide{padding:10px 12px}
 .tools{margin:14px 0 10px}
 .backup{margin-bottom:90px}
+.myprog{margin-bottom:12px}
+.myprog .pname{margin:2px 0 6px;font-weight:600;color:var(--ink)}
+nav.many small{display:none}
+.bkrow button.warn{border-color:var(--skip);color:var(--skip)}
 @media (min-width:600px){ .sets{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))} }
 </style>
 </head>
@@ -259,12 +263,13 @@ details.guide{padding:10px 12px}
 
 <script>
 /* ===================== PROGRAMA =====================
-   4 rutinas que se hacen en orden A → B → C → D → A…, sin día fijo.
+   Programa por defecto (el original): 4 rutinas en orden A → B → C → D → A…, sin día fijo.
+   Se puede sustituir importando un archivo de rutina (ver parseProgram).
    Pierna repartida en todas (cuádriceps, femoral, glúteo y gemelo/lumbar).
    Cardio: bici estática 40-50 min al final. */
 /* Biblioteca de ejercicios. El peso de trabajo se guarda por ejercicio,
    así que si cambias a una alternativa, esa alternativa recuerda su propio peso. */
-const EX = {
+const BASE_EX = {
   // Pecho
   'press-banca':      {n:'Press banca con barra', eq:'barra', bar:20, tip:'Omóplatos juntos y pies firmes. Baja controlado a la mitad del pecho y empuja sin rebotar.', q:'barbell bench press exercise'},
   'press-banca-manc': {n:'Press banca con mancuernas', eq:'mancuerna', tip:'Codos a unos 45° del cuerpo. Baja hasta que las mancuernas queden a la altura del pecho.', q:'dumbbell bench press exercise'},
@@ -347,9 +352,10 @@ const EX = {
    Pierna repartida en todas. Pensado para tonificar a partir de los 50:
    rangos de 8-15 repeticiones, sin series pesadas de pocas repeticiones.
    Cada hueco (k) tiene el ejercicio principal y sus alternativas (o). */
-const R = {
+const BASE_WARM = { min:10, text:'5 min de bici suave, 3-4 min de movilidad (hombros, cadera, tobillos) y 1-2 series ligeras del primer ejercicio antes de empezar las de verdad.' };
+const BASE_R = {
   A: { title:'Pecho + cuádriceps', short:'Pecho', color:'--a',
-    cardio:{ min:45, text:'45 min continuos en zona 2: un ritmo en el que puedes hablar con frases cortas (esfuerzo 5-6 sobre 10), cadencia 85-95 rpm.' },
+    warm:BASE_WARM, cardio:{ name:'Bici', min:45, text:'45 min continuos en zona 2: un ritmo en el que puedes hablar con frases cortas (esfuerzo 5-6 sobre 10), cadencia 85-95 rpm.' },
     items:[
       {k:'A1', s:4, r:'8-12', rest:'90 s', o:['press-banca','press-banca-manc','press-maquina','press-multi','flexiones']},
       {k:'A2', s:4, r:'10-12', rest:'2 min', o:['prensa','sentadilla-hack','sentadilla-multi','sentadilla-goblet']},
@@ -359,7 +365,7 @@ const R = {
       {k:'A6', s:3, r:'30-45 s', rest:'45 s', o:['plancha','dead-bug','crunch-polea','pallof']}
     ]},
   B: { title:'Espalda + femoral', short:'Espalda', color:'--b',
-    cardio:{ min:40, text:'40 min con intervalos: 10 min suave + 6 × (1 min fuerte a 8/10 + 2 min suave) + 12 min suave.' },
+    warm:BASE_WARM, cardio:{ name:'Bici', min:40, text:'40 min con intervalos: 10 min suave + 6 × (1 min fuerte a 8/10 + 2 min suave) + 12 min suave.' },
     items:[
       {k:'B1', s:4, r:'10-12', rest:'90 s', o:['jalon','dominadas','jalon-neutro','dominadas-asist','pullover-polea']},
       {k:'B2', s:3, r:'10-12', rest:'2 min', o:['peso-muerto-rumano','pmr-manc','pull-through','hiperext']},
@@ -369,7 +375,7 @@ const R = {
       {k:'B6', s:3, r:'12-15', rest:'60 s', o:['curl-mancuernas','curl-z','curl-polea','curl-scott']}
     ]},
   C: { title:'Hombro + glúteo', short:'Hombro', color:'--c',
-    cardio:{ min:40, text:'40 min suaves (esfuerzo 4-5 sobre 10), resistencia baja y cadencia alta: hoy las piernas ya han trabajado bastante.' },
+    warm:BASE_WARM, cardio:{ name:'Bici', min:40, text:'40 min suaves (esfuerzo 4-5 sobre 10), resistencia baja y cadencia alta: hoy las piernas ya han trabajado bastante.' },
     items:[
       {k:'C1', s:4, r:'10-12', rest:'90 s', o:['press-militar','press-hombro-maq','press-arnold','press-hombro-multi']},
       {k:'C2', s:4, r:'10-12', rest:'90 s', o:['hip-thrust','hip-thrust-maq','puente-gluteo','patada-gluteo']},
@@ -379,7 +385,7 @@ const R = {
       {k:'C6', s:3, r:'15', rest:'45 s', o:['gemelos','gemelos-prensa','gemelos-sentado']}
     ]},
   D: { title:'Cuerpo completo', short:'Completo', color:'--d',
-    cardio:{ min:50, text:'50 min progresivos: 20 min suave, 20 min a ritmo medio (esfuerzo 6-7 sobre 10) y 10 min de vuelta a la calma.' },
+    warm:BASE_WARM, cardio:{ name:'Bici', min:50, text:'50 min progresivos: 20 min suave, 20 min a ritmo medio (esfuerzo 6-7 sobre 10) y 10 min de vuelta a la calma.' },
     items:[
       {k:'D1', s:4, r:'10-12', rest:'90 s', o:['remo-polea','remo-maquina','remo-mancuerna','remo-barra']},
       {k:'D2', s:3, r:'12', rest:'90 s', o:['sentadilla-goblet','prensa','sentadilla-hack','sentadilla-multi']},
@@ -389,8 +395,126 @@ const R = {
       {k:'D6', s:3, r:'12-15', rest:'60 s', o:['press-frances','ext-triceps','ext-nuca','fondos-asist']}
     ]}
 };
-const ORDER = ['A','B','C','D'];
-const WARM_MIN = 10;
+const BASE_PROG = {
+  name:'Rutina original · tonificar, 4 días', desc:'', EX:BASE_EX, R:BASE_R, ORDER:['A','B','C','D'],
+  notes:['**Para tonificar** lo que marca la diferencia es ir subiendo peso poco a poco y acompañarlo de la alimentación: una ligera reducción de calorías y proteína en cada comida (unos 1,6 g por kg de peso al día, en tu caso unos 130 g).']
+};
+/* Programa activo: el original o el importado */
+let EX = BASE_EX, R = BASE_R, ORDER = BASE_PROG.ORDER, NOTES = BASE_PROG.notes, PROG = BASE_PROG;
+let SLOT_MAIN = {};
+function applyProgram(P){
+  PROG = P; EX = P.EX; R = P.R; ORDER = P.ORDER; NOTES = P.notes;
+  SLOT_MAIN = {};
+  for (const k of Object.keys(R)) for (const it of R[k].items) SLOT_MAIN[it.k] = it.o[0];
+}
+
+/* ===================== ARCHIVO DE RUTINA =====================
+   {
+     "tipo": "rutina-gym", "version": 1,
+     "nombre": "Rutina de Marta", "descripcion": "…",
+     "calentamiento": {"min":10, "texto":"…"},            // para todos los días (opcional)
+     "cardio": {"nombre":"Elíptica", "min":30, "texto":"…"}, // para todos los días (opcional)
+     "ejercicios": { "id": {"nombre":"…", "material":"barra|mancuerna|maquina|discos|corporal",
+                            "barra":20, "consejo":"…", "busqueda":"english search",
+                            "series":1, "reps":"al máximo", "al_maximo":true } },
+     "dias": [ {"titulo":"Pecho + cuádriceps", "corto":"Pecho",
+                "calentamiento":{…}|null, "cardio":{…}|null,   // opcional: cambia o quita el de por defecto
+                "ejercicios":[ {"series":4, "reps":"8-12", "descanso":"90 s", "opciones":["id1","id2"]} ] } ],
+     "consejos": ["texto con **negrita**", …]
+   }
+   Los días se nombran A, B, C… por orden (máx. 6). Un id que no esté en "ejercicios"
+   puede ser uno de la biblioteca de la app (BASE_EX). */
+const LETTERS = 'ABCDEF', COLORS = ['--a','--b','--c','--d','--e','--f'];
+function parseProgram(p){
+  const bad = m => { throw new Error(m); };
+  if (!p || typeof p !== 'object' || p.tipo !== 'rutina-gym') bad('No es un archivo de rutina.');
+  const str = (v, max=400) => typeof v === 'string' ? v.trim().slice(0, max) : (typeof v === 'number' ? String(v) : '');
+  const int = (v, lo, hi) => { const n = Math.round(Number(v)); return Number.isFinite(n) && n >= lo && n <= hi ? n : null; };
+  const restStr = v => {
+    if (typeof v === 'number' && v >= 10 && v <= 600) return Math.round(v) + ' s';
+    const t = str(v, 20).replace(',', '.');
+    return /^\d+(\.\d+)?\s*(s|min)$/.test(t) ? t : '90 s';
+  };
+  const dias = p.dias;
+  if (!Array.isArray(dias) || !dias.length) bad('La rutina no tiene días.');
+  if (dias.length > 6) bad('La rutina puede tener como máximo 6 días.');
+  const ex = Object.assign({}, BASE_EX);
+  const exIn = p.ejercicios && typeof p.ejercicios === 'object' ? p.ejercicios : {};
+  for (const [id, e] of Object.entries(exIn)){
+    if (!/^[a-z0-9-]{1,40}$/.test(id)) bad('Nombre interno de ejercicio no válido: «' + id + '».');
+    if (!e || !str(e.nombre)) bad('Al ejercicio «' + id + '» le falta el nombre.');
+    const eq = e.material || 'maquina';
+    if (!EQL[eq]) bad('Material no válido en «' + id + '»: ' + eq + '.');
+    const d = { n:str(e.nombre, 80), eq, tip:str(e.consejo, 400), q:str(e.busqueda, 80) || str(e.nombre, 80) };
+    if (eq === 'barra'){ const b = Number(e.barra); d.bar = Number.isFinite(b) && b >= 0 && b <= 40 ? b : 20; }
+    const inc = Number(e.incremento); if (Number.isFinite(inc) && inc > 0 && inc <= 20) d.inc = inc;
+    if (e.al_maximo){ d.reps = true; d.s = int(e.series, 1, 10) || 1; d.r = str(e.reps, 30) || 'al máximo'; }
+    else { const ss = int(e.series, 1, 10); if (ss) d.s = ss; if (str(e.reps)) d.r = str(e.reps, 30); }
+    ex[id] = d;
+  }
+  const block = (b, def, cardio) => {
+    if (b === null || b === false) return null;
+    if (b === undefined) return def;
+    if (typeof b !== 'object') bad('Calentamiento o cardio con formato no válido.');
+    const min = int(b.min, 1, 180); if (min == null) bad('Faltan los minutos del ' + (cardio ? 'cardio' : 'calentamiento') + '.');
+    const out = { min, text:str(b.texto, 500) };
+    if (cardio) out.name = str(b.nombre, 16) || 'Cardio';
+    return out;
+  };
+  const warm0 = block(p.calentamiento, null, false), cardio0 = block(p.cardio, null, true);
+  const R2 = {}, ORD = [];
+  dias.forEach((d, i) => {
+    const L = LETTERS[i];
+    if (!d || typeof d !== 'object') bad('El día ' + L + ' no tiene un formato válido.');
+    const items = d.ejercicios;
+    if (!Array.isArray(items) || !items.length) bad('El día ' + L + ' no tiene ejercicios.');
+    if (items.length > 15) bad('El día ' + L + ' tiene demasiados ejercicios (máx. 15).');
+    R2[L] = {
+      title: str(d.titulo, 60) || 'Día ' + L,
+      short: str(d.corto, 12) || str(d.titulo, 12) || 'Día ' + L,
+      color: COLORS[i],
+      warm: block(d.calentamiento, warm0, false),
+      cardio: block(d.cardio, cardio0, true),
+      items: items.map((it, j) => {
+        const where = 'día ' + L + ', ejercicio ' + (j+1);
+        if (!it || typeof it !== 'object') bad('Formato no válido en el ' + where + '.');
+        const o = [...new Set((Array.isArray(it.opciones) ? it.opciones : [it.ejercicio]).filter(x => typeof x === 'string' && x))].slice(0, 8);
+        if (!o.length) bad('Falta el ejercicio en el ' + where + '.');
+        for (const id of o) if (!ex[id]) bad('El ejercicio «' + id + '» (' + where + ') no está definido.');
+        const sr = int(it.series, 1, 10); if (sr == null) bad('Faltan las series en el ' + where + '.');
+        return { k: L + (j+1), s: sr, r: str(it.reps, 30) || '10-12', rest: restStr(it.descanso), o };
+      })
+    };
+    ORD.push(L);
+  });
+  const notes = Array.isArray(p.consejos) ? p.consejos.map(x => str(x, 600)).filter(Boolean).slice(0, 15) : [];
+  return { name: str(p.nombre, 60) || 'Mi rutina', desc: str(p.descripcion, 300), EX:ex, R:R2, ORDER:ORD, notes };
+}
+/* Rutina activa en formato de archivo (para compartirla) */
+function programToFile(){
+  const used = new Set(); for (const k of ORDER) for (const it of R[k].items) it.o.forEach(id => used.add(id));
+  const ejercicios = {};
+  for (const id of used){
+    const e = EX[id], d = { nombre:e.n, material:e.eq };
+    if (e.bar != null) d.barra = e.bar;
+    if (e.inc) d.incremento = e.inc;
+    if (e.tip) d.consejo = e.tip;
+    if (e.q) d.busqueda = e.q;
+    if (e.reps) d.al_maximo = true;
+    if (e.s) d.series = e.s;
+    if (e.r) d.reps = e.r;
+    ejercicios[id] = d;
+  }
+  const blk = (b, cardio) => !b ? null : Object.assign(cardio ? {nombre:b.name} : {}, {min:b.min, texto:b.text});
+  return {
+    tipo:'rutina-gym', version:1, nombre:PROG.name, descripcion:PROG.desc || undefined,
+    ejercicios,
+    dias: ORDER.map(k => ({ titulo:R[k].title, corto:R[k].short,
+      calentamiento: blk(R[k].warm, false), cardio: blk(R[k].cardio, true),
+      ejercicios: R[k].items.map(it => ({ series:it.s, reps:it.r, descanso:it.rest, opciones:it.o })) })),
+    consejos: NOTES
+  };
+}
 
 const EQL = { mancuerna:'Por mancuerna', barra:'Total con barra', maquina:'En la máquina', discos:'Discos (total)', corporal:'Peso extra' };
 const EQH = {
@@ -447,7 +571,7 @@ function score(ses){
     const f = m[key] === 'd' ? 1 : 0; if (f) any = true;
     units++; sum += f; if (f) complete++; parts.push({key, f});
   };
-  simple('__warm');
+  if (routine.warm) simple('__warm');
   for (const it of routine.items){
     const e = x[it.k] || {};
     if (e.skip){ parts.push({key:it.k, f:0, skip:true}); continue; }
@@ -459,7 +583,7 @@ function score(ses){
     units++; sum += f; if (f >= 1) complete++;
     parts.push({key:it.k, f, dn, act});
   }
-  simple('__cardio');
+  if (routine.cardio) simple('__cardio');
   return { pct: units ? Math.round(sum/units*100) : 0, units, complete, any, parts };
 }
 
@@ -487,8 +611,7 @@ function slotSets(slotDef, use){
   const id = (use && EX[use] && slotDef.o.includes(use)) ? use : slotDef.o[0];
   return EX[id].s || slotDef.s;
 }
-const SLOT_MAIN = {};
-for (const k of Object.keys(R)) for (const it of R[k].items) SLOT_MAIN[it.k] = it.o[0];
+
 function lastTime(id){
   let best = null;
   for (const s of Object.values(state.ses)){
@@ -578,7 +701,7 @@ function lpInit(main){
 
 /* ===================== PINTAR ===================== */
 function renderTabs(active, next){
-  const nav = $('#tabs'); nav.innerHTML = '';
+  const nav = $('#tabs'); nav.innerHTML = ''; nav.classList.toggle('many', ORDER.length > 4);
   for (const k of ORDER){
     const b = document.createElement('button');
     b.type = 'button'; b.setAttribute('role','tab');
@@ -611,20 +734,22 @@ function render(){
   let secs = 0;
   for (const it of routine.items){ const ns = slotSets(it, ((ses0.x||{})[it.k]||{}).use); secs += ns*45 + (ns-1)*slotRest(it) + 90; }
   const pesas = Math.round(secs/60/5)*5;
-  const totalMin = WARM_MIN + pesas + routine.cardio.min;
+  const wMin = routine.warm ? routine.warm.min : 0, cMin = routine.cardio ? routine.cardio.min : 0;
+  const totalMin = wMin + pesas + cMin;
   const hh = Math.floor(totalMin/60), mm = totalMin % 60;
   const dur = document.createElement('span'); dur.className = 'dur';
   dur.textContent = '⏱ ' + (hh ? hh + ' h ' : '') + (mm ? mm + ' min' : '');
   const pp = head.querySelector('p');
-  pp.append(dur, document.createTextNode(' ' + WARM_MIN + ' calent. + ' + pesas + ' pesas + ' + routine.cardio.min + ' bici'));
+  const parts = []; if (wMin) parts.push(wMin + ' calent.'); parts.push(pesas + ' pesas'); if (cMin) parts.push(cMin + ' ' + routine.cardio.name.toLowerCase());
+  pp.append(dur, document.createTextNode(' ' + parts.join(' + ')));
   main.appendChild(head);
 
   const rot = document.createElement('p'); rot.className = 'rot';
-  if (!nx.last) rot.innerHTML = 'Empieza por la <b>A</b> y sigue el orden A → B → C → D. Si un día no vas, el siguiente día que vayas haces la que tocaba.';
+  if (!nx.last) rot.innerHTML = ORDER.length === 1 ? 'Repite esta rutina cada día que vayas.' : 'Empieza por la <b>A</b> y sigue el orden ' + ORDER.join(' → ') + '. Si un día no vas, el siguiente día que vayas haces la que tocaba.';
   else {
     const l = nx.last;
     const lastTxt = 'Último entreno: ' + l.r + ' el ' + wday(l.d) + ' ' + fdate(l.d) + '.';
-    if (nx.todayDone) rot.innerHTML = 'Hoy ya has empezado la <b>' + l.r + '</b>. La próxima vez tocará la <b>' + ORDER[(ORDER.indexOf(l.r)+1)%4] + '</b>.';
+    if (nx.todayDone) rot.innerHTML = 'Hoy ya has empezado la <b>' + l.r + '</b>. La próxima vez tocará la <b>' + ORDER[(ORDER.indexOf(l.r)+1) % ORDER.length] + '</b>.';
     else rot.innerHTML = lastTxt.replace(/</g,'&lt;') + ' Hoy toca la <b>' + nx.r + '</b>.';
     if (rk !== nx.r && !nx.todayDone) rot.innerHTML += ' (Estás viendo la ' + rk + ').';
   }
@@ -721,8 +846,7 @@ function render(){
     main.appendChild(sec);
   }
 
-  simpleBlock('__warm', 'Calentamiento · ' + WARM_MIN + ' min',
-    '5 min de bici suave, 3-4 min de movilidad (hombros, cadera, tobillos) y 1-2 series ligeras del primer ejercicio antes de empezar las de verdad.');
+  if (routine.warm) simpleBlock('__warm', 'Calentamiento · ' + routine.warm.min + ' min', routine.warm.text);
 
   /* Ejercicios */
   routine.items.forEach((slotDef, idx) => {
@@ -1020,27 +1144,30 @@ function render(){
   });
 
   /* Cardio */
+  if (routine.cardio){
   const cin = document.createElement('div'); cin.className = 'cin';
   const cl = document.createElement('label'); cl.textContent = 'Minutos hechos'; cl.htmlFor = 'cmin';
   const ci = document.createElement('input'); ci.type = 'number'; ci.id = 'cmin'; ci.inputMode = 'numeric'; ci.min = '0'; ci.step = '1';
   ci.placeholder = String(routine.cardio.min); ci.value = ses.cmin ?? '';
   ci.addEventListener('change', () => { const s = S(); s.cmin = ci.value === '' ? undefined : Number(ci.value); if (s.cmin == null) delete s.cmin; scheduleSave(); });
   cin.append(cl, ci);
-  simpleBlock('__cardio', 'Bici · ' + routine.cardio.min + ' min', routine.cardio.text, cin);
+  simpleBlock('__cardio', routine.cardio.name + ' · ' + routine.cardio.min + ' min', routine.cardio.text, cin);
+  }
 
   /* Guía */
+  const cardioName = (ORDER.map(k => R[k].cardio).find(Boolean) || {}).name;
   const g = document.createElement('details'); g.className = 'guide';
   g.innerHTML = '<summary>Cómo elegir y subir el peso</summary><ul>' +
-    '<li><b>Orden:</b> A → B → C → D y vuelta a empezar. Con 4 días a la semana completas el ciclo cada semana; si faltas, no pasa nada, se retoma donde lo dejaste.</li>' +
+    (ORDER.length > 1 ? '<li><b>Orden:</b> ' + ORDER.join(' → ') + ' y vuelta a empezar, sin días fijos. Si faltas un día, no pasa nada: se retoma donde lo dejaste.</li>' : '') +
     '<li><b>Primer día de cada rutina:</b> peso con el que termines cada serie dejando 1-2 repeticiones en la recámara. Mejor quedarte corto que perder la técnica.</li>' +
     '<li><b>Doble progresión:</b> cuando hagas todas las series en el número alto del rango (p. ej. 4×12 en un 8-12), la próxima vez sube 2-2,5 kg en tren superior o 5 kg en prensa, hip thrust y peso muerto, y vuelve al número bajo.</li>' +
     '<li><b>Máquina ocupada o estropeada:</b> pulsa el botón de flechas ⇄ y elige otra opción del mismo grupo. Solo cambia para la sesión de hoy; la próxima vez vuelve a salir la principal.</li>' +
-    '<li><b>Para tonificar</b> lo que marca la diferencia es ir subiendo peso poco a poco y acompañarlo de la alimentación: una ligera reducción de calorías y proteína en cada comida (unos 1,6 g por kg de peso al día, en tu caso unos 130 g).</li>' +
+    NOTES.map(n => '<li>' + richText(n) + '</li>').join('') +
     '<li><b>Si no llegas</b> al número bajo del rango en dos sesiones seguidas, baja un escalón de peso.</li>' +
     '<li><b>Descansos:</b> respétalos en los ejercicios grandes (2 min); en los pequeños puedes ir algo más rápido. Con <b>−</b> y <b>+</b> junto al reloj lo cambias de 15 en 15 s; se recuerda para la próxima vez que hagas esa rutina, y con ↺ vuelves al del programa.</li>' +
     '<li><b>Tiempo del entreno:</b> pulsa <b>▶ Empezar entreno</b> al llegar. Puedes pausarlo y seguir; sigue contando aunque cierres la app. Al acabar pulsa <b>■ Terminar</b> (dos veces, para no hacerlo sin querer) y el tiempo queda guardado en el historial.</li>' +
     '<li><b>Ejercicios terminados:</b> se pliegan solos para que veas lo que te queda. Toca el título para abrirlos y revisarlos, y otra vez para cerrarlos.</li>' +
-    '<li><b>Bici después de las pesas</b>, no antes: así llegas fresco a los ejercicios de fuerza.</li>' +
+    (cardioName ? '<li><b>' + richText(cardioName) + ' después de las pesas</b>, no antes: así llegas fresco a los ejercicios de fuerza.</li>' : '') +
     '<li><b>Cada 6-8 semanas</b>, haz una semana más suave (2 series por ejercicio en vez de 3-4) para recuperar.</li>' +
     '</ul>';
   main.appendChild(g);
@@ -1054,7 +1181,7 @@ function render(){
     for (const s of hs){
       const li = document.createElement('li');
       const a1 = document.createElement('span'); a1.textContent = wday(s.d) + ' ' + fdate(s.d) + ' · ' + s.r + ' ' + R[s.r].title;
-      const a2 = document.createElement('span'); a2.textContent = score(s).pct + '%' + (s.clk && clkMs(s.clk) >= 60000 ? ' · ' + fmtDur(clkMs(s.clk)) : '') + (s.cmin ? ' · bici ' + s.cmin + ' min' : '');
+      const a2 = document.createElement('span'); a2.textContent = score(s).pct + '%' + (s.clk && clkMs(s.clk) >= 60000 ? ' · ' + fmtDur(clkMs(s.clk)) : '') + (s.cmin ? ' · ' + (R[s.r].cardio ? R[s.r].cardio.name.toLowerCase() : 'cardio') + ' ' + s.cmin + ' min' : '');
       li.append(a1, a2); ul.appendChild(li);
     }
     main.appendChild(hb);
@@ -1071,12 +1198,38 @@ function render(){
   });
   tools.appendChild(reset);
   main.appendChild(tools);
+  const mp = document.createElement('section'); mp.className = 'block myprog';
+  mp.innerHTML = '<h3>Tu rutina</h3><p class="pname"></p><p class="tip"></p>';
+  mp.querySelector('.pname').textContent = PROG.name;
+  mp.querySelector('.tip').textContent = (ORDER.length === 1 ? '1 día' : ORDER.length + ' días (' + ORDER.join(' → ') + ')') + '. ' + (PROG.desc ? PROG.desc + ' ' : '') +
+    'Para cambiarla, pulsa «⬆ Importar copia o rutina» y elige el archivo de rutina que te hayan pasado. Tus pesos y entrenos se conservan.';
+  const mrow = document.createElement('div'); mrow.className = 'bkrow';
+  const shb = document.createElement('button'); shb.type = 'button'; shb.textContent = '⬇ Compartir mi rutina';
+  shb.addEventListener('click', () => {
+    const name = 'rutina-' + (PROG.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') || 'gym') + '.json';
+    shareFile(JSON.stringify(programToFile(), null, 1), name, 'Rutina', 'Rutina guardada: ');
+  });
+  mrow.appendChild(shb);
+  if (state.prog){
+    const rb = document.createElement('button'); rb.type = 'button'; rb.className = 'warn'; rb.textContent = '↺ Volver a la rutina original';
+    let rArm = null;
+    rb.addEventListener('click', () => {
+      if (!rArm){ rb.textContent = '¿Seguro? Pulsa otra vez'; rArm = setTimeout(() => { rArm = null; rb.textContent = '↺ Volver a la rutina original'; }, 3000); return; }
+      clearTimeout(rArm);
+      delete state.prog; state.rest = {}; applyProgram(BASE_PROG);
+      if (store) store.save(state); goStart(); render(); bkMsg('Has vuelto a la rutina original.');
+    });
+    mrow.appendChild(rb);
+  }
+  mp.appendChild(mrow);
+  main.appendChild(mp);
+
   const bk = document.createElement('section'); bk.className = 'block backup';
   bk.innerHTML = '<h3>Copia de seguridad</h3><p class="tip">Tus registros se guardan solo en este móvil. Haz una copia de vez en cuando (por ejemplo, a Google Drive) por si borras los datos del navegador o cambias de móvil.</p>';
   const bx = document.createElement('div'); bx.className = 'bkrow';
   const exb = document.createElement('button'); exb.type = 'button'; exb.textContent = '⬇ Exportar copia';
   exb.addEventListener('click', exportData);
-  const imb = document.createElement('button'); imb.type = 'button'; imb.textContent = '⬆ Importar copia';
+  const imb = document.createElement('button'); imb.type = 'button'; imb.textContent = '⬆ Importar copia o rutina';
   const fi = document.createElement('input'); fi.type = 'file'; fi.accept = '.json,application/json'; fi.hidden = true;
   imb.addEventListener('click', () => fi.click());
   fi.addEventListener('change', () => { const f = fi.files && fi.files[0]; if (f) importData(f); fi.value = ''; });
@@ -1094,7 +1247,7 @@ function render(){
       const c = document.createElement('span');
       const wide = p.key.startsWith('__');
       c.className = 'chip' + (wide ? ' w' : '') + (p.skip ? ' sk' : p.f >= 1 ? ' full' : p.f > 0 ? ' part' : '');
-      c.textContent = p.key === '__warm' ? 'Calent.' : p.key === '__cardio' ? 'Bici' : String(++n);
+      c.textContent = p.key === '__warm' ? 'Calent.' : p.key === '__cardio' ? (routine.cardio ? routine.cardio.name : 'Cardio').slice(0, 9) : String(++n);
       chipsEl.appendChild(c);
     }
     prog.querySelector('i').style.width = sc.pct + '%';
@@ -1207,14 +1360,16 @@ function startTimer(btn, rest){
 
 /* ===================== COPIA DE SEGURIDAD ===================== */
 function bkMsg(t){ const el = document.getElementById('bkmsg'); if (el) el.textContent = t; }
-async function exportData(){
+function exportData(){
   const txt = JSON.stringify({app:'rutina-gym', v:2, fecha:new Date().toISOString(), datos:clean(state)});
-  const name = 'rutina-gym-' + today + '.json';
+  shareFile(txt, 'rutina-gym-' + today + '.json', 'Copia rutina gym', 'Copia ');
+}
+async function shareFile(txt, name, title, what){
   try{
     const file = new File([txt], name, {type:'application/json'});
     if (navigator.canShare && navigator.canShare({files:[file]})){
-      await navigator.share({files:[file], title:'Copia rutina gym'});
-      bkMsg('Copia compartida: ' + name); return;
+      await navigator.share({files:[file], title});
+      bkMsg(what + 'compartida: ' + name); return;
     }
   }catch(e){ if (e && e.name === 'AbortError') return; }
   try{
@@ -1222,21 +1377,42 @@ async function exportData(){
     a.href = URL.createObjectURL(new Blob([txt], {type:'application/json'}));
     a.download = name; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-    bkMsg('Copia descargada: ' + name + ' (en Descargas).');
-  }catch(e){ bkMsg('No se ha podido exportar la copia.'); }
+    bkMsg(what + 'descargada: ' + name + ' (en Descargas).');
+  }catch(e){ bkMsg('No se ha podido guardar el archivo.'); }
+}
+/* Vuelve a la rutina que toca (quita la letra de la dirección) */
+function goStart(){ try{ history.replaceState(null, '', location.pathname); }catch(e){ location.hash = ''; } }
+/* Texto con **negrita**, sin HTML */
+function richText(t){
+  return String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
 }
 function importData(file){
   const r = new FileReader();
   r.onload = () => {
     try{
-      const obj = JSON.parse(r.result);
+      let obj; try{ obj = JSON.parse(r.result); }catch(e){ bkMsg('Ese archivo no es una copia ni una rutina válida.'); return; }
+      // Archivo de rutina
+      if (obj && obj.tipo === 'rutina-gym'){
+        let P; try{ P = parseProgram(obj); }catch(e){ bkMsg('Esta rutina tiene un problema: ' + e.message); return; }
+        state.prog = obj; state.rest = {};
+        applyProgram(P);
+        if (store) store.save(state);
+        goStart(); render();
+        bkMsg('Rutina «' + P.name + '» cargada: ' + P.ORDER.length + (P.ORDER.length === 1 ? ' día.' : ' días.'));
+        window.scrollTo(0, 0);
+        return;
+      }
+      // Copia de seguridad
       const d = obj && obj.datos ? obj.datos : obj;
       if (!d || typeof d !== 'object' || (!d.ses && !d.work && !d.rest)) throw new Error('formato');
+      const keep = state.prog;
       state = clean(d);
+      if (!state.prog && keep) state.prog = keep;
+      loadProgram();
       if (store) store.save(state);
-      render();
+      goStart(); render();
       bkMsg('Copia importada: ' + Object.keys(state.ses).length + ' sesiones recuperadas.');
-    }catch(e){ bkMsg('Ese archivo no es una copia válida de la rutina.'); }
+    }catch(e){ bkMsg('Ese archivo no es una copia ni una rutina válida.'); }
   };
   r.readAsText(file);
 }
@@ -1245,6 +1421,7 @@ function importData(file){
 function clean(s){
   s = s && typeof s === 'object' ? s : {};
   const out = { work: s.work || {}, ses: s.ses || {}, rest: s.rest || {} };
+  if (s.prog && typeof s.prog === 'object') out.prog = s.prog;
   // Conserva las sesiones de los últimos 120 días (máx. 80)
   const cutoff = localDate(new Date(Date.now() - 120*864e5));
   const keys = Object.keys(out.ses).filter(k => k.slice(0,10) >= cutoff).sort().reverse().slice(0, 80);
@@ -1256,13 +1433,21 @@ function localStore(){
   let saved = null;
   try{ saved = JSON.parse(localStorage.getItem('rutina-gym-rotativa') || 'null'); }catch(e){}
   if (saved) state = clean(saved);
+  loadProgram();
   try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch(e){}
   return { label:'Guardado en este móvil', save(obj){ try{ localStorage.setItem('rutina-gym-rotativa', JSON.stringify(clean(obj))); }catch(e){} } };
 }
 
+/* Aplica la rutina guardada en el móvil, o la original si no hay o está dañada */
+function loadProgram(){
+  let P = BASE_PROG;
+  if (state.prog){ try{ P = parseProgram(state.prog); }catch(e){ P = BASE_PROG; } }
+  applyProgram(P);
+}
 async function init(){
   lpInit($('#main'));
   // Los datos se guardan solo en el móvil (almacenamiento del navegador / app instalada)
+  applyProgram(BASE_PROG);
   store = localStore();
   render();
 }

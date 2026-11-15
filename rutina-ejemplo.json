@@ -1,0 +1,769 @@
+{
+  "tipo": "rutina-gym",
+  "version": 1,
+  "nombre": "Rutina original · tonificar, 4 días",
+  "ejercicios": {
+    "press-banca": {
+      "nombre": "Press banca con barra",
+      "material": "barra",
+      "barra": 20,
+      "consejo": "Omóplatos juntos y pies firmes. Baja controlado a la mitad del pecho y empuja sin rebotar.",
+      "busqueda": "barbell bench press exercise"
+    },
+    "press-banca-manc": {
+      "nombre": "Press banca con mancuernas",
+      "material": "mancuerna",
+      "consejo": "Codos a unos 45° del cuerpo. Baja hasta que las mancuernas queden a la altura del pecho.",
+      "busqueda": "dumbbell bench press exercise"
+    },
+    "press-maquina": {
+      "nombre": "Press de pecho en máquina",
+      "material": "maquina",
+      "consejo": "Asiento a una altura en la que las asas queden a mitad del pecho. Empuja sin bloquear los codos.",
+      "busqueda": "chest press machine exercise"
+    },
+    "press-multi": {
+      "nombre": "Press banca en multipower",
+      "material": "barra",
+      "barra": 15,
+      "consejo": "Banco colocado para que la barra baje a la mitad del pecho. Apunta el peso de la barra de tu multipower.",
+      "busqueda": "smith machine bench press exercise"
+    },
+    "flexiones": {
+      "nombre": "Flexiones (en el suelo o con manos en banco)",
+      "material": "corporal",
+      "consejo": "Cuerpo recto como una tabla. Si cuestan, apoya las manos en un banco; cuanto más alto, más fácil.",
+      "busqueda": "push up exercise"
+    },
+    "prensa": {
+      "nombre": "Prensa de piernas",
+      "material": "discos",
+      "incremento": 5,
+      "consejo": "Pies a la anchura de la cadera. Baja hasta unos 90° de rodilla sin que la zona lumbar se despegue del respaldo.",
+      "busqueda": "leg press machine exercise"
+    },
+    "sentadilla-hack": {
+      "nombre": "Sentadilla hack (máquina)",
+      "material": "discos",
+      "incremento": 5,
+      "consejo": "Espalda pegada al respaldo; baja controlado hasta donde mantengas la postura.",
+      "busqueda": "hack squat machine exercise"
+    },
+    "sentadilla-multi": {
+      "nombre": "Sentadilla en multipower",
+      "material": "barra",
+      "barra": 15,
+      "consejo": "Pies ligeramente adelantados respecto a la barra. Baja hasta muslos paralelos o un poco menos.",
+      "busqueda": "smith machine squat exercise"
+    },
+    "sentadilla-goblet": {
+      "nombre": "Sentadilla goblet",
+      "material": "mancuerna",
+      "consejo": "Mancuerna vertical pegada al pecho. Baja con la espalda recta y los codos entre las rodillas hasta donde controles.",
+      "busqueda": "goblet squat dumbbell exercise"
+    },
+    "press-inclinado": {
+      "nombre": "Press inclinado con mancuernas",
+      "material": "mancuerna",
+      "consejo": "Banco a 30°. Codos a unos 45° del cuerpo, no abiertos en cruz.",
+      "busqueda": "incline dumbbell press exercise"
+    },
+    "press-incl-maq": {
+      "nombre": "Press inclinado en máquina",
+      "material": "maquina",
+      "consejo": "Empuja hacia arriba y algo hacia delante, sin despegar la espalda del respaldo.",
+      "busqueda": "incline chest press machine exercise"
+    },
+    "press-incl-multi": {
+      "nombre": "Press inclinado en multipower",
+      "material": "barra",
+      "barra": 15,
+      "consejo": "Banco a 30°. La barra baja a la parte alta del pecho.",
+      "busqueda": "smith machine incline press exercise"
+    },
+    "cruce-poleas": {
+      "nombre": "Cruce de poleas (aperturas)",
+      "material": "maquina",
+      "consejo": "Codos algo flexionados y fijos. Junta las manos delante del pecho y vuelve despacio.",
+      "busqueda": "cable crossover chest fly exercise"
+    },
+    "ext-cuadriceps": {
+      "nombre": "Extensión de cuádriceps (máquina)",
+      "material": "maquina",
+      "consejo": "Sube hasta estirar del todo, aguanta 1 s arriba y baja en 2-3 s.",
+      "busqueda": "leg extension machine exercise"
+    },
+    "step-up": {
+      "nombre": "Subida al banco con mancuernas (step-up)",
+      "material": "mancuerna",
+      "consejo": "Banco a la altura de la rodilla o algo menos. Sube empujando con la pierna de arriba, sin impulsarte con la de abajo.",
+      "busqueda": "dumbbell step up exercise"
+    },
+    "bulgara": {
+      "nombre": "Sentadilla búlgara con mancuernas",
+      "material": "mancuerna",
+      "consejo": "Pie trasero en un banco. Baja en vertical; si cuesta el equilibrio, apóyate con una mano.",
+      "busqueda": "bulgarian split squat dumbbell exercise"
+    },
+    "ext-triceps": {
+      "nombre": "Extensión de tríceps en polea",
+      "material": "maquina",
+      "consejo": "Codos pegados al costado; solo se mueven los antebrazos. Estira del todo abajo.",
+      "busqueda": "cable triceps pushdown exercise"
+    },
+    "fondos-asist": {
+      "nombre": "Fondos en máquina (asistidos o sentado)",
+      "material": "maquina",
+      "consejo": "Baja solo hasta que los codos formen 90°, sin forzar el hombro.",
+      "busqueda": "seated dip machine triceps exercise"
+    },
+    "ext-nuca": {
+      "nombre": "Extensión tras nuca con mancuerna",
+      "material": "mancuerna",
+      "consejo": "Sentado con respaldo, mancuerna con las dos manos. Codos apuntando al techo.",
+      "busqueda": "seated overhead dumbbell triceps extension exercise"
+    },
+    "patada-triceps": {
+      "nombre": "Patada de tríceps con mancuerna",
+      "material": "mancuerna",
+      "consejo": "Brazo pegado al cuerpo y paralelo al suelo; estira el codo del todo atrás.",
+      "busqueda": "dumbbell triceps kickback exercise"
+    },
+    "plancha": {
+      "nombre": "Plancha frontal (segundos)",
+      "material": "corporal",
+      "consejo": "Abdomen y glúteos apretados, cuerpo en línea recta. Para en cuanto se hunda la cadera.",
+      "busqueda": "forearm plank exercise"
+    },
+    "dead-bug": {
+      "nombre": "Dead bug (bicho muerto)",
+      "material": "corporal",
+      "consejo": "Boca arriba, zona lumbar pegada al suelo. Estira brazo y pierna contrarios despacio.",
+      "busqueda": "dead bug core exercise"
+    },
+    "crunch-polea": {
+      "nombre": "Crunch en polea alta de rodillas",
+      "material": "maquina",
+      "consejo": "Cuerda junto a la cabeza. Enrolla el tronco hacia abajo con el abdomen, no tirando con los brazos.",
+      "busqueda": "cable crunch kneeling exercise"
+    },
+    "pallof": {
+      "nombre": "Press Pallof en polea",
+      "material": "maquina",
+      "consejo": "De lado a la polea, empuja el agarre al frente y aguanta 2 s sin dejar que te gire.",
+      "busqueda": "pallof press cable exercise"
+    },
+    "jalon": {
+      "nombre": "Jalón al pecho (máquina)",
+      "material": "maquina",
+      "consejo": "Agarre algo más ancho que los hombros. Tira hacia la parte alta del pecho sin balancear el cuerpo.",
+      "busqueda": "lat pulldown machine exercise"
+    },
+    "dominadas": {
+      "nombre": "Dominadas en barra",
+      "material": "corporal",
+      "consejo": "Una sola serie: haz todas las repeticiones que puedas con buena técnica, de brazos casi estirados a barbilla por encima de la barra. Apunta las repeticiones. Cuando pases de 12, añade 2,5 kg con cinturón o mancuerna entre los pies.",
+      "busqueda": "pull up exercise",
+      "al_maximo": true,
+      "series": 1,
+      "reps": "al máximo"
+    },
+    "jalon-neutro": {
+      "nombre": "Jalón con agarre estrecho neutro",
+      "material": "maquina",
+      "consejo": "Agarre en V. Lleva el asa hacia el esternón sacando pecho.",
+      "busqueda": "close grip neutral lat pulldown exercise"
+    },
+    "dominadas-asist": {
+      "nombre": "Dominadas asistidas (máquina)",
+      "material": "maquina",
+      "consejo": "Aquí el peso AYUDA: cuanto menos pongas, más difícil. Sube hasta que la barbilla pase el agarre.",
+      "busqueda": "assisted pull up machine exercise"
+    },
+    "pullover-polea": {
+      "nombre": "Pullover en polea alta",
+      "material": "maquina",
+      "consejo": "Brazos casi rectos; baja la barra hasta los muslos trabajando la espalda, no los brazos.",
+      "busqueda": "cable straight arm pulldown exercise"
+    },
+    "peso-muerto-rumano": {
+      "nombre": "Peso muerto rumano con barra",
+      "material": "barra",
+      "barra": 20,
+      "incremento": 5,
+      "consejo": "Rodillas algo flexionadas, cadera atrás y espalda recta. Barra pegada a las piernas; baja hasta notar el femoral estirado.",
+      "busqueda": "romanian deadlift barbell exercise"
+    },
+    "pmr-manc": {
+      "nombre": "Peso muerto rumano con mancuernas",
+      "material": "mancuerna",
+      "consejo": "Igual que con barra: cadera atrás, espalda recta y mancuernas rozando los muslos.",
+      "busqueda": "dumbbell romanian deadlift exercise"
+    },
+    "pull-through": {
+      "nombre": "Pull-through en polea",
+      "material": "maquina",
+      "consejo": "De espaldas a la polea baja con la cuerda entre las piernas. Lleva la cadera atrás y estírate apretando glúteo.",
+      "busqueda": "cable pull through exercise"
+    },
+    "hiperext": {
+      "nombre": "Hiperextensiones (banco romano)",
+      "material": "corporal",
+      "consejo": "Sube hasta alinear el cuerpo, sin arquear de más. Trabaja lumbar, glúteo y femoral.",
+      "busqueda": "back extension hyperextension bench"
+    },
+    "remo-mancuerna": {
+      "nombre": "Remo con mancuerna a una mano",
+      "material": "mancuerna",
+      "consejo": "Mano y rodilla apoyadas en el banco, espalda plana. Lleva el codo hacia la cadera.",
+      "busqueda": "one arm dumbbell row exercise"
+    },
+    "remo-maquina": {
+      "nombre": "Remo en máquina con apoyo de pecho",
+      "material": "maquina",
+      "consejo": "Pecho apoyado en el respaldo; tira juntando los omóplatos sin encoger los hombros.",
+      "busqueda": "chest supported row machine exercise"
+    },
+    "remo-polea": {
+      "nombre": "Remo en polea baja sentado",
+      "material": "maquina",
+      "consejo": "Pecho fuera, lleva los codos atrás pegados al cuerpo y junta los omóplatos.",
+      "busqueda": "seated cable row exercise"
+    },
+    "remo-barra": {
+      "nombre": "Remo con barra",
+      "material": "barra",
+      "barra": 20,
+      "consejo": "Espalda recta e inclinada unos 45°; lleva la barra al ombligo. Peso moderado para cuidar la zona lumbar.",
+      "busqueda": "barbell bent over row exercise"
+    },
+    "curl-femoral": {
+      "nombre": "Curl femoral tumbado (máquina)",
+      "material": "maquina",
+      "consejo": "Sube controlado y baja más lento de lo que subes. Cadera pegada al banco.",
+      "busqueda": "lying leg curl machine exercise"
+    },
+    "curl-femoral-sent": {
+      "nombre": "Curl femoral sentado (máquina)",
+      "material": "maquina",
+      "consejo": "Ajusta el rodillo justo encima de los tobillos; baja despacio.",
+      "busqueda": "seated leg curl machine exercise"
+    },
+    "curl-femoral-pie": {
+      "nombre": "Curl femoral de pie a una pierna",
+      "material": "maquina",
+      "consejo": "Cadera quieta; flexiona la rodilla llevando el talón al glúteo.",
+      "busqueda": "standing leg curl machine exercise"
+    },
+    "curl-fitball": {
+      "nombre": "Curl femoral con fitball",
+      "material": "corporal",
+      "consejo": "Tumbado boca arriba con los talones en la pelota. Sube la cadera y recoge la pelota hacia ti.",
+      "busqueda": "stability ball hamstring curl exercise"
+    },
+    "face-pull": {
+      "nombre": "Face pull en polea",
+      "material": "maquina",
+      "consejo": "Cuerda a la altura de la cara. Tira separando las manos y abriendo los codos.",
+      "busqueda": "cable face pull exercise"
+    },
+    "pajaros": {
+      "nombre": "Pájaros en máquina (contractora inversa)",
+      "material": "maquina",
+      "consejo": "Brazos casi rectos; abre hasta la línea de los hombros sin encoger el cuello.",
+      "busqueda": "reverse pec deck machine exercise"
+    },
+    "pajaros-manc": {
+      "nombre": "Pájaros con mancuernas inclinado",
+      "material": "mancuerna",
+      "consejo": "Tronco inclinado y espalda recta (o pecho apoyado en banco inclinado). Abre los brazos en cruz con peso ligero.",
+      "busqueda": "bent over dumbbell reverse fly exercise"
+    },
+    "goma-aperturas": {
+      "nombre": "Aperturas con goma elástica",
+      "material": "corporal",
+      "consejo": "Goma delante del pecho, brazos rectos. Ábrelos en cruz juntando los omóplatos.",
+      "busqueda": "band pull apart exercise"
+    },
+    "curl-mancuernas": {
+      "nombre": "Curl de bíceps con mancuernas",
+      "material": "mancuerna",
+      "consejo": "Sin balanceo. Gira la palma hacia arriba al subir y baja en 2 s.",
+      "busqueda": "dumbbell biceps curl exercise"
+    },
+    "curl-z": {
+      "nombre": "Curl con barra Z",
+      "material": "barra",
+      "barra": 10,
+      "consejo": "Codos quietos junto al cuerpo; sube sin echar el tronco atrás.",
+      "busqueda": "EZ bar biceps curl exercise"
+    },
+    "curl-polea": {
+      "nombre": "Curl en polea baja",
+      "material": "maquina",
+      "consejo": "Tensión constante: no dejes caer el peso abajo del todo.",
+      "busqueda": "cable biceps curl exercise"
+    },
+    "curl-scott": {
+      "nombre": "Curl en máquina Scott",
+      "material": "maquina",
+      "consejo": "Brazos apoyados en el cojín. Baja hasta casi estirar, sin bloquear.",
+      "busqueda": "preacher curl machine exercise"
+    },
+    "press-militar": {
+      "nombre": "Press militar sentado con mancuernas",
+      "material": "mancuerna",
+      "consejo": "Respaldo vertical, abdomen firme. Sube sin bloquear del todo los codos.",
+      "busqueda": "seated dumbbell shoulder press exercise"
+    },
+    "press-hombro-maq": {
+      "nombre": "Press de hombro en máquina",
+      "material": "maquina",
+      "consejo": "Asas a la altura de las orejas al empezar. Sube sin despegar la espalda.",
+      "busqueda": "shoulder press machine exercise"
+    },
+    "press-arnold": {
+      "nombre": "Press Arnold",
+      "material": "mancuerna",
+      "consejo": "Empieza con las palmas hacia ti y gíralas hacia delante mientras subes.",
+      "busqueda": "arnold press dumbbell exercise"
+    },
+    "press-hombro-multi": {
+      "nombre": "Press militar en multipower sentado",
+      "material": "barra",
+      "barra": 15,
+      "consejo": "Banco vertical; la barra baja por delante de la cara hasta la barbilla.",
+      "busqueda": "smith machine seated shoulder press exercise"
+    },
+    "hip-thrust": {
+      "nombre": "Hip thrust con barra",
+      "material": "barra",
+      "barra": 20,
+      "incremento": 5,
+      "consejo": "Parte alta de la espalda en el banco y barbilla recogida. Sube hasta alinear tronco y muslos y aprieta glúteo 1 s. Usa almohadilla.",
+      "busqueda": "barbell hip thrust exercise"
+    },
+    "hip-thrust-maq": {
+      "nombre": "Hip thrust en máquina",
+      "material": "maquina",
+      "consejo": "Misma técnica que con barra, pero más cómodo de preparar.",
+      "busqueda": "hip thrust machine exercise"
+    },
+    "puente-gluteo": {
+      "nombre": "Puente de glúteo con mancuerna",
+      "material": "mancuerna",
+      "consejo": "Tumbado en el suelo, mancuerna sobre la cadera. Sube apretando glúteo y aguanta 1 s.",
+      "busqueda": "dumbbell glute bridge exercise"
+    },
+    "patada-gluteo": {
+      "nombre": "Patada de glúteo en polea",
+      "material": "maquina",
+      "consejo": "Tobillera en la polea baja. Lleva la pierna atrás sin arquear la zona lumbar.",
+      "busqueda": "cable glute kickback exercise"
+    },
+    "elev-laterales": {
+      "nombre": "Elevaciones laterales con mancuernas",
+      "material": "mancuerna",
+      "consejo": "Sube hasta la altura de los hombros, codos ligeramente flexionados, sin impulso.",
+      "busqueda": "dumbbell lateral raise exercise"
+    },
+    "elev-lat-polea": {
+      "nombre": "Elevación lateral en polea a una mano",
+      "material": "maquina",
+      "consejo": "Polea abajo, cable por delante del cuerpo. Sube hasta la altura del hombro.",
+      "busqueda": "cable lateral raise exercise"
+    },
+    "elev-lat-maq": {
+      "nombre": "Elevaciones laterales en máquina",
+      "material": "maquina",
+      "consejo": "Codos apoyados en los rodillos; sube hasta la línea de los hombros.",
+      "busqueda": "lateral raise machine exercise"
+    },
+    "zancadas": {
+      "nombre": "Zancadas hacia atrás con mancuernas",
+      "material": "mancuerna",
+      "consejo": "Paso atrás largo, rodilla trasera casi al suelo. Empuja con el talón de la pierna delantera. Cargan menos la rodilla que hacia delante.",
+      "busqueda": "dumbbell reverse lunge exercise"
+    },
+    "zancadas-multi": {
+      "nombre": "Zancadas en multipower",
+      "material": "barra",
+      "barra": 15,
+      "consejo": "Pies separados como en un paso largo; baja en vertical sin que la rodilla delantera pase mucho la punta del pie.",
+      "busqueda": "smith machine split squat exercise"
+    },
+    "gemelos": {
+      "nombre": "Gemelos de pie (máquina)",
+      "material": "maquina",
+      "consejo": "Estira abajo del todo y aguanta 1 s arriba.",
+      "busqueda": "standing calf raise machine exercise"
+    },
+    "gemelos-prensa": {
+      "nombre": "Gemelos en prensa",
+      "material": "discos",
+      "incremento": 5,
+      "consejo": "Solo la punta de los pies en la plataforma; empuja con los tobillos sin bloquear las rodillas.",
+      "busqueda": "calf press on leg press machine"
+    },
+    "gemelos-sentado": {
+      "nombre": "Gemelos sentado (máquina)",
+      "material": "maquina",
+      "consejo": "Rodillas bajo el apoyo; sube y baja con recorrido completo.",
+      "busqueda": "seated calf raise machine exercise"
+    },
+    "contractora": {
+      "nombre": "Aperturas en contractora (pec deck)",
+      "material": "maquina",
+      "consejo": "Codos a la altura del pecho. Cierra apretando el pecho y abre sin pasar de la línea de los hombros.",
+      "busqueda": "pec deck machine fly exercise"
+    },
+    "curl-martillo": {
+      "nombre": "Curl martillo",
+      "material": "mancuerna",
+      "consejo": "Palmas mirándose durante todo el recorrido; codos quietos.",
+      "busqueda": "dumbbell hammer curl exercise"
+    },
+    "curl-martillo-polea": {
+      "nombre": "Curl martillo en polea con cuerda",
+      "material": "maquina",
+      "consejo": "Cuerda en la polea baja, palmas enfrentadas, codos pegados.",
+      "busqueda": "cable rope hammer curl exercise"
+    },
+    "press-frances": {
+      "nombre": "Press francés con barra Z",
+      "material": "barra",
+      "barra": 10,
+      "consejo": "Baja la barra hacia la frente moviendo solo los antebrazos.",
+      "busqueda": "EZ bar skull crusher exercise"
+    }
+  },
+  "dias": [
+    {
+      "titulo": "Pecho + cuádriceps",
+      "corto": "Pecho",
+      "calentamiento": {
+        "min": 10,
+        "texto": "5 min de bici suave, 3-4 min de movilidad (hombros, cadera, tobillos) y 1-2 series ligeras del primer ejercicio antes de empezar las de verdad."
+      },
+      "cardio": {
+        "nombre": "Bici",
+        "min": 45,
+        "texto": "45 min continuos en zona 2: un ritmo en el que puedes hablar con frases cortas (esfuerzo 5-6 sobre 10), cadencia 85-95 rpm."
+      },
+      "ejercicios": [
+        {
+          "series": 4,
+          "reps": "8-12",
+          "descanso": "90 s",
+          "opciones": [
+            "press-banca",
+            "press-banca-manc",
+            "press-maquina",
+            "press-multi",
+            "flexiones"
+          ]
+        },
+        {
+          "series": 4,
+          "reps": "10-12",
+          "descanso": "2 min",
+          "opciones": [
+            "prensa",
+            "sentadilla-hack",
+            "sentadilla-multi",
+            "sentadilla-goblet"
+          ]
+        },
+        {
+          "series": 3,
+          "reps": "10-12",
+          "descanso": "90 s",
+          "opciones": [
+            "press-inclinado",
+            "press-incl-maq",
+            "press-incl-multi",
+            "cruce-poleas"
+          ]
+        },
+        {
+          "series": 3,
+          "reps": "12-15",
+          "descanso": "60 s",
+          "opciones": [
+            "ext-cuadriceps",
+            "step-up",
+            "bulgara",
+            "sentadilla-goblet"
+          ]
+        },
+        {
+          "series": 3,
+          "reps": "12-15",
+          "descanso": "60 s",
+          "opciones": [
+            "ext-triceps",
+            "fondos-asist",
+            "ext-nuca",
+            "patada-triceps"
+          ]
+        },
+        {
+          "series": 3,
+          "reps": "30-45 s",
+          "descanso": "45 s",
+          "opciones": [
+            "plancha",
+            "dead-bug",
+            "crunch-polea",
+            "pallof"
+          ]
+        }
+      ]
+    },
+    {
+      "titulo": "Espalda + femoral",
+      "corto": "Espalda",
+      "calentamiento": {
+        "min": 10,
+        "texto": "5 min de bici suave, 3-4 min de movilidad (hombros, cadera, tobillos) y 1-2 series ligeras del primer ejercicio antes de empezar las de verdad."
+      },
+      "cardio": {
+        "nombre": "Bici",
+        "min": 40,
+        "texto": "40 min con intervalos: 10 min suave + 6 × (1 min fuerte a 8/10 + 2 min suave) + 12 min suave."
+      },
+      "ejercicios": [
+        {
+          "series": 4,
+          "reps": "10-12",
+          "descanso": "90 s",
+          "opciones": [
+            "jalon",
+            "dominadas",
+            "jalon-neutro",
+            "dominadas-asist",
+            "pullover-polea"
+          ]
+        },
+        {
+          "series": 3,
+          "reps": "10-12",
+          "descanso": "2 min",
+          "opciones": [
+            "peso-muerto-rumano",
+            "pmr-manc",
+            "pull-through",
+            "hiperext"
+          ]
+        },
+        {
+          "series": 3,
+          "reps": "10-12 por brazo",
+          "descanso": "90 s",
+          "opciones": [
+            "remo-mancuerna",
+            "remo-maquina",
+            "remo-polea",
+            "remo-barra"
+          ]
+        },
+        {
+          "series": 3,
+          "reps": "12-15",
+          "descanso": "60 s",
+          "opciones": [
+            "curl-femoral",
+            "curl-femoral-sent",
+            "curl-femoral-pie",
+            "curl-fitball"
+          ]
+        },
+        {
+          "series": 3,
+          "reps": "15",
+          "descanso": "60 s",
+          "opciones": [
+            "face-pull",
+            "pajaros",
+            "pajaros-manc",
+            "goma-aperturas"
+          ]
+        },
+        {
+          "series": 3,
+          "reps": "12-15",
+          "descanso": "60 s",
+          "opciones": [
+            "curl-mancuernas",
+            "curl-z",
+            "curl-polea",
+            "curl-scott"
+          ]
+        }
+      ]
+    },
+    {
+      "titulo": "Hombro + glúteo",
+      "corto": "Hombro",
+      "calentamiento": {
+        "min": 10,
+        "texto": "5 min de bici suave, 3-4 min de movilidad (hombros, cadera, tobillos) y 1-2 series ligeras del primer ejercicio antes de empezar las de verdad."
+      },
+      "cardio": {
+        "nombre": "Bici",
+        "min": 40,
+        "texto": "40 min suaves (esfuerzo 4-5 sobre 10), resistencia baja y cadencia alta: hoy las piernas ya han trabajado bastante."
+      },
+      "ejercicios": [
+        {
+          "series": 4,
+          "reps": "10-12",
+          "descanso": "90 s",
+          "opciones": [
+            "press-militar",
+            "press-hombro-maq",
+            "press-arnold",
+            "press-hombro-multi"
+          ]
+        },
+        {
+          "series": 4,
+          "reps": "10-12",
+          "descanso": "90 s",
+          "opciones": [
+            "hip-thrust",
+            "hip-thrust-maq",
+            "puente-gluteo",
+            "patada-gluteo"
+          ]
+        },
+        {
+          "series": 3,
+          "reps": "12-15",
+          "descanso": "60 s",
+          "opciones": [
+            "elev-laterales",
+            "elev-lat-polea",
+            "elev-lat-maq"
+          ]
+        },
+        {
+          "series": 3,
+          "reps": "10 por pierna",
+          "descanso": "90 s",
+          "opciones": [
+            "zancadas",
+            "bulgara",
+            "step-up",
+            "zancadas-multi"
+          ]
+        },
+        {
+          "series": 3,
+          "reps": "15",
+          "descanso": "60 s",
+          "opciones": [
+            "pajaros",
+            "pajaros-manc",
+            "face-pull",
+            "goma-aperturas"
+          ]
+        },
+        {
+          "series": 3,
+          "reps": "15",
+          "descanso": "45 s",
+          "opciones": [
+            "gemelos",
+            "gemelos-prensa",
+            "gemelos-sentado"
+          ]
+        }
+      ]
+    },
+    {
+      "titulo": "Cuerpo completo",
+      "corto": "Completo",
+      "calentamiento": {
+        "min": 10,
+        "texto": "5 min de bici suave, 3-4 min de movilidad (hombros, cadera, tobillos) y 1-2 series ligeras del primer ejercicio antes de empezar las de verdad."
+      },
+      "cardio": {
+        "nombre": "Bici",
+        "min": 50,
+        "texto": "50 min progresivos: 20 min suave, 20 min a ritmo medio (esfuerzo 6-7 sobre 10) y 10 min de vuelta a la calma."
+      },
+      "ejercicios": [
+        {
+          "series": 4,
+          "reps": "10-12",
+          "descanso": "90 s",
+          "opciones": [
+            "remo-polea",
+            "remo-maquina",
+            "remo-mancuerna",
+            "remo-barra"
+          ]
+        },
+        {
+          "series": 3,
+          "reps": "12",
+          "descanso": "90 s",
+          "opciones": [
+            "sentadilla-goblet",
+            "prensa",
+            "sentadilla-hack",
+            "sentadilla-multi"
+          ]
+        },
+        {
+          "series": 3,
+          "reps": "10-12",
+          "descanso": "90 s",
+          "opciones": [
+            "press-maquina",
+            "press-banca-manc",
+            "flexiones",
+            "contractora"
+          ]
+        },
+        {
+          "series": 3,
+          "reps": "12-15",
+          "descanso": "60 s",
+          "opciones": [
+            "hiperext",
+            "pmr-manc",
+            "pull-through",
+            "puente-gluteo"
+          ]
+        },
+        {
+          "series": 3,
+          "reps": "12-15",
+          "descanso": "60 s",
+          "opciones": [
+            "curl-martillo",
+            "curl-martillo-polea",
+            "curl-z",
+            "curl-polea"
+          ]
+        },
+        {
+          "series": 3,
+          "reps": "12-15",
+          "descanso": "60 s",
+          "opciones": [
+            "press-frances",
+            "ext-triceps",
+            "ext-nuca",
+            "fondos-asist"
+          ]
+        }
+      ]
+    }
+  ],
+  "consejos": [
+    "**Para tonificar** lo que marca la diferencia es ir subiendo peso poco a poco y acompañarlo de la alimentación: una ligera reducción de calorías y proteína en cada comida (unos 1,6 g por kg de peso al día, en tu caso unos 130 g)."
+  ]
+}
