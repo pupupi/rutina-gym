@@ -77,7 +77,7 @@ a.ex:hover{text-decoration:underline}
 .set input[type=number]{width:54px;border:0;background:transparent;color:var(--ink);font:600 1rem Barlow,Arial,sans-serif;padding:4px 0}
 .set input[readonly]{pointer-events:none}
 .set label{font-size:.8rem;color:var(--muted)}
-.set .lock{font-size:.75rem}
+.set .lock{display:inline-flex;color:var(--muted);opacity:.55}
 .set input[type=checkbox]{width:24px;height:24px;margin-left:auto;accent-color:var(--done);cursor:pointer;flex:none}
 .set.skip{border-color:var(--skip);background:color-mix(in srgb,var(--skip) 16%,var(--field))}
 .set.skip input[type=number]{text-decoration:line-through;color:var(--skip)}
@@ -149,10 +149,15 @@ details.guide li b{color:var(--ink)}
 #status{font-size:.85rem;color:var(--muted)}
 .bkrow{display:flex;gap:8px;flex-wrap:wrap}
 .bkrow button{flex:1;border:2px solid var(--accent);background:transparent;color:var(--accent);border-radius:10px;padding:10px;font:600 .95rem Barlow,Arial,sans-serif;cursor:pointer}
-#tpill{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);transform:translate(-50%,150%);z-index:20;
-  border:0;border-radius:999px;padding:12px 20px;font:700 1.1rem Barlow,Arial,sans-serif;color:#fff;cursor:pointer;white-space:nowrap;
-  background:linear-gradient(90deg,color-mix(in srgb,#000 25%,var(--accent)) var(--p,0%),var(--accent) var(--p,0%));
+#tpill{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);transform:translate(-50%,170%);z-index:20;
+  display:flex;align-items:center;gap:6px;padding:6px;border-radius:999px;background:var(--accent);
   box-shadow:0 6px 20px rgba(0,0,0,.3);transition:transform .25s}
+#tpill.work{background:color-mix(in srgb,#000 30%,var(--accent))}
+.tp-main{border:0;border-radius:999px;padding:10px 16px;font:700 1.1rem Barlow,Arial,sans-serif;color:#fff;cursor:pointer;white-space:nowrap;
+  min-width:150px;font-variant-numeric:tabular-nums;
+  background:linear-gradient(90deg,color-mix(in srgb,#000 25%,var(--accent)) var(--p,0%),transparent var(--p,0%))}
+.tp-step{flex:none;width:42px;height:42px;border-radius:50%;border:2px solid rgba(255,255,255,.75);background:transparent;color:#fff;
+  font:700 1.4rem/1 Barlow,Arial,sans-serif;cursor:pointer;padding:0}
 #tpill.on{transform:translate(-50%,0)}
 #talarm{position:fixed;inset:0;z-index:30;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;
   border:0;background:var(--done);color:#fff;cursor:pointer;font:inherit;padding:24px;text-align:center}
@@ -226,11 +231,15 @@ nav button.next::after{top:-8px;right:4px}
 .block.folded .links{display:none}
 .block.folded{padding-top:10px;padding-bottom:10px}
 .foldhead.canfold{cursor:pointer}
-.chev{display:none;margin-left:6px;color:var(--muted);font-size:1rem;transition:transform .2s}
-.foldhead.canfold .chev{display:inline-block}
+.chev{display:inline-block;flex:none;margin-right:4px;color:var(--muted);font-size:1rem;transition:transform .2s}
+.foldhead{cursor:pointer}
+.foldhead .badge{margin-left:auto}
+.foldhead .ttl{flex:1 1 auto}
 .block.folded .chev{transform:rotate(-90deg)}
 .extop .chev{align-self:center}
 .meta .links{margin-left:auto}
+.restlbl{color:var(--muted)}
+.workbtn{font-weight:700}
 .rgrp{display:inline-flex;align-items:center;gap:4px}
 .rstep{width:30px;height:30px;border-radius:50%;border:2px solid var(--accent);background:transparent;color:var(--accent);font:700 1.05rem/1 Barlow,Arial,sans-serif;cursor:pointer;padding:0}
 .rstep:disabled{opacity:.35;cursor:default}
@@ -543,6 +552,16 @@ const restSecs = rest => typeof rest === 'number' ? rest : rest.includes('min') 
 /* Descanso de un hueco: el que hayas elegido (se recuerda) o el del programa */
 const REST_STEP = 15, REST_MIN = 15, REST_MAX = 300;
 const slotRest = slotDef => (state.rest && state.rest[slotDef.k]) || restSecs(slotDef.rest);
+/* Segundos de un ejercicio por tiempo según sus repeticiones («45 s», «30-45 s», «1 min»); 0 si no lo es */
+function timedSecs(r){
+  const t = String(r || '').toLowerCase();
+  let m = t.match(/(\d+)\s*(?:-\s*(\d+))?\s*(?:s|sg|seg|segs|segundos)\b/);
+  if (m) return Number(m[2] || m[1]);
+  m = t.match(/(\d+)\s*(?:-\s*(\d+))?\s*min\b/);
+  if (m) return Number(m[2] || m[1]) * 60;
+  return 0;
+}
+const fmtShort = s => s < 60 ? s + ' s' : (s % 60 ? Math.floor(s/60) + ':' + String(s%60).padStart(2,'0') : (s/60) + ' min');
 const fmtRest = s => s < 60 ? s + ' s' : (s % 60 ? Math.floor(s/60) + ':' + String(s%60).padStart(2,'0') + ' min' : (s/60) + ' min');
 
 function setStatus(t){ const el = $('#status'); if (el) el.textContent = t; }
@@ -642,32 +661,33 @@ function fmtDur(ms){
 }
 
 /* ===================== PLEGADO ===================== */
-// Bloques terminados que has vuelto a abrir a mano (solo durante esta visita)
-const unfolded = new Set();
-/* Pliega o despliega un bloque terminado. head = zona que se toca para abrir/cerrar */
+// Plegado elegido a mano para cada bloque (solo durante esta visita): true = plegado
+const foldOver = new Map();
+/* Cualquier bloque se pliega o despliega tocando su título. Los terminados se pliegan solos.
+   head = zona que se toca para abrir/cerrar */
 function foldable(sec, head, key){
   let want = false, timer = null, first = true;
   const chev = document.createElement('span'); chev.className = 'chev'; chev.setAttribute('aria-hidden','true'); chev.textContent = '▾';
-  head.appendChild(chev);
+  head.prepend(chev);
   const apply = () => {
-    const f = want && !unfolded.has(key);
+    const f = foldOver.has(key) ? foldOver.get(key) : want;
     sec.classList.toggle('folded', f);
     head.setAttribute('aria-expanded', String(!f));
   };
   head.addEventListener('click', ev => {
-    if (!want || Date.now() - lpFiredAt < 600) return;
+    if (Date.now() - lpFiredAt < 600) return;
     if (ev.target.closest('a,button:not(.badge),input,.alts')) return;
     if (ev.target.closest('.badge') && !sec.classList.contains('folded')) return;
     ev.preventDefault(); ev.stopImmediatePropagation();
-    if (unfolded.has(key)) unfolded.delete(key); else unfolded.add(key);
+    foldOver.set(key, !sec.classList.contains('folded'));
     clearTimeout(timer); apply();
   }, true);
   head.classList.add('foldhead');
   return done => {
     const was = want; want = !!done;
-    if (!want) unfolded.delete(key);
     clearTimeout(timer);
-    head.classList.toggle('canfold', want);
+    // Al cambiar de terminado a no terminado (o al revés) manda el estado del bloque
+    if (!first && want !== was) foldOver.delete(key);
     // Al terminar ahora mismo, espera un momento para que se vea la marca
     if (want && !was && !first) timer = setTimeout(apply, 700); else apply();
     first = false;
@@ -839,7 +859,7 @@ function render(){
     painters.push(() => {
       const st = ((state.ses[sesKey(rk)]||{}).m||{})[key];
       fold(st === 'd' || st === 's');
-      b.textContent = st === 's' ? '✕ No' : st === 'd' ? '✓ Hecho' : 'Marcar';
+      b.textContent = st === 's' ? 'No la hago' : st === 'd' ? 'Hecho' : 'Marcar';
       b.classList.toggle('full', st === 'd'); b.classList.toggle('sk', st === 's');
       sec.classList.toggle('complete', st === 'd'); sec.classList.toggle('skip', st === 's');
     });
@@ -902,22 +922,27 @@ function render(){
     meta.innerHTML = '<span><b></b></span>';
     meta.querySelector('b').textContent = isReps ? it.s + ' serie ' + it.r : it.s + ' × ' + it.r;
     meta.querySelector('span').title = isReps ? it.s + ' serie con todas las repeticiones que puedas' : it.s + ' series de ' + it.r + ' repeticiones';
-    const tb = document.createElement('button'); tb.type = 'button'; tb.className = 'timer';
     const defRest = restSecs(slotDef.rest);
     let restNow = slotRest(slotDef);
-    tb.addEventListener('click', () => startTimer(tb, restNow));
-    const rm = document.createElement('button'); rm.type = 'button'; rm.className = 'rstep'; rm.textContent = '−';
-    const rp = document.createElement('button'); rp.type = 'button'; rp.className = 'rstep'; rp.textContent = '+';
+    // El descanso arranca solo al marcar una serie; se ajusta con − / + en el propio reloj
+    const restLbl = document.createElement('span'); restLbl.className = 'restlbl';
     const rr = document.createElement('button'); rr.type = 'button'; rr.className = 'rreset';
-    rm.setAttribute('aria-label','Menos descanso'); rp.setAttribute('aria-label','Más descanso');
+    // Ejercicios por tiempo (p. ej. «30-45 s»): botón para contar la serie, con 3-2-1 antes
+    const workSecs = isReps ? 0 : timedSecs(it.r);
+    let wb = null;
+    if (workSecs){
+      wb = document.createElement('button'); wb.type = 'button'; wb.className = 'timer workbtn';
+      wb.textContent = '▶ ' + fmtRest(workSecs);
+      wb.setAttribute('aria-label', 'Contar ' + fmtRest(workSecs) + ' de ' + it.n + ', con cuenta atrás de 3 segundos');
+      wb.addEventListener('click', () => {
+        if (TM && TM.owner === wb){ stopTimer(); return; }
+        startTimer(wb, workSecs, {kind:'work', tag:slot});
+      });
+    }
     const paintRest = () => {
-      const lbl = '⏱ ' + fmtRest(restNow);
-      tb.dataset.label = lbl;
-      if (!tb.classList.contains('run')) tb.textContent = lbl;
-      tb.setAttribute('aria-label','Descanso de ' + fmtRest(restNow) + '. Pulsa para empezar');
-      rm.disabled = restNow <= REST_MIN; rp.disabled = restNow >= REST_MAX;
+      restLbl.textContent = 'Descanso ' + fmtShort(restNow);
       rr.hidden = restNow === defRest;
-      rr.textContent = '↺ ' + fmtRest(defRest);
+      rr.textContent = '↺ ' + fmtShort(defRest);
       rr.title = 'Volver al descanso del programa (' + fmtRest(defRest) + ')';
     };
     const setRest = v => {
@@ -926,12 +951,11 @@ function render(){
       if (restNow === defRest) delete state.rest[slotDef.k]; else state.rest[slotDef.k] = restNow;
       paintRest(); scheduleSave();
     };
-    rm.addEventListener('click', () => setRest(restNow - REST_STEP));
-    rp.addEventListener('click', () => setRest(restNow + REST_STEP));
+    const adjustRest = d => setRest(restNow + d);
     rr.addEventListener('click', () => setRest(defRest));
-    const rgrp = document.createElement('span'); rgrp.className = 'rgrp'; rgrp.append(rm, tb, rp);
     paintRest();
-    meta.append(rgrp, rr, links); sec.appendChild(meta);
+    if (wb) meta.append(wb);
+    meta.append(restLbl, rr, links); sec.appendChild(meta);
     sec.appendChild(alts);
 
     const p = document.createElement('p'); p.className = 'tip'; p.textContent = it.tip; sec.appendChild(p);
@@ -1028,7 +1052,7 @@ function render(){
       inp.setAttribute('aria-label', it.n + ', serie ' + (i+1) + (isReps ? ', repeticiones' : ', kg'));
       if (isReps){ inp.step = '1'; inp.inputMode = 'numeric'; }
       const l = document.createElement('label'); l.textContent = isReps ? 'reps' : 'kg';
-      const lock = document.createElement('span'); lock.className = 'lock'; lock.textContent = '🔒'; lock.title = 'Peso fijado: la serie está hecha';
+      const lock = document.createElement('span'); lock.className = 'lock'; lock.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>'; lock.title = 'Peso fijado: la serie está hecha';
       const c = document.createElement('input'); c.type = 'checkbox'; c.setAttribute('aria-label', 'Serie ' + (i+1) + ' hecha');
       const no = document.createElement('span'); no.className = 'no'; no.textContent = 'NO';
       inp.addEventListener('change', () => {
@@ -1061,8 +1085,8 @@ function render(){
         if (c.checked){
           let left = false;
           for (let j=0;j<it.s;j++){ const st = (e.sets[j]||{}).st; if (st !== 'd' && st !== 's') left = true; }
-          if (left) restartTimer(tb, restNow);
-          else if (timerInt && timerBtn === tb) stopTimer();
+          if (left) restartTimer(slot, restNow, adjustRest);
+          else if (TM && TM.tag === slot && TM.kind === 'rest') stopTimer();
         }
       });
       s.lpAction = () => {
@@ -1126,18 +1150,20 @@ function render(){
       let act = 0, dn = 0;
       for (let i=0;i<it.s;i++){ const st = ((e.sets||[])[i]||{}).st; if (st === 's') continue; act++; if (st === 'd') dn++; }
       const full = !e.skip && act > 0 && dn === act;
-      badge.textContent = e.skip || !act ? '✕' : full ? '✓' : dn + '/' + act;
+      badge.textContent = e.skip || !act ? 'No la hago' : full ? 'Hecho' : dn + '/' + act;
       badge.setAttribute('aria-label', e.skip || !act ? 'No lo haces' : dn + ' de ' + act + ' series hechas. Pulsa para marcar o desmarcar todas');
       badge.classList.toggle('full', full); badge.classList.toggle('sk', !!e.skip || !act);
       sec.classList.toggle('complete', full);
       // Resumen que se ve con el bloque plegado
       const dn2 = (e.sets||[]).slice(0, it.s).filter(z => z && z.st === 'd');
       if (e.skip || !act) fsum.textContent = 'No lo haces hoy';
+      else if (!dn2.length) fsum.textContent = 'Sin empezar · ' + (isReps ? it.s + ' serie ' + it.r : it.s + ' × ' + it.r);
       else if (isReps) fsum.textContent = dn2.map(z => (z.reps ?? '—') + ' reps' + (z.kg ? ' con +' + fmt(z.kg) + ' kg' : '')).join(' · ');
       else {
         const kgs = dn2.map(z => z.kg == null ? '—' : fmt(z.kg));
         fsum.textContent = kgs.length && kgs.every(k => k === kgs[0]) ? kgs.length + ' × ' + kgs[0] + (kgs[0] === '—' ? '' : ' kg') : kgs.join(' · ') + ' kg';
       }
+      if (!full && !e.skip && act && dn2.length) fsum.textContent += ' · ' + dn + ' de ' + act + ' series';
       fold(full || !!e.skip || !act);
     });
     main.appendChild(sec);
@@ -1164,9 +1190,10 @@ function render(){
     '<li><b>Máquina ocupada o estropeada:</b> pulsa el botón de flechas ⇄ y elige otra opción del mismo grupo. Solo cambia para la sesión de hoy; la próxima vez vuelve a salir la principal.</li>' +
     NOTES.map(n => '<li>' + richText(n) + '</li>').join('') +
     '<li><b>Si no llegas</b> al número bajo del rango en dos sesiones seguidas, baja un escalón de peso.</li>' +
-    '<li><b>Descansos:</b> respétalos en los ejercicios grandes (2 min); en los pequeños puedes ir algo más rápido. Con <b>−</b> y <b>+</b> junto al reloj lo cambias de 15 en 15 s; se recuerda para la próxima vez que hagas esa rutina, y con ↺ vuelves al del programa.</li>' +
+    '<li><b>Descansos:</b> respétalos en los ejercicios grandes (2 min); en los pequeños puedes ir algo más rápido. El reloj de descanso arranca solo al marcar una serie; con <b>−</b> y <b>+</b> en el propio reloj lo cambias de 15 en 15 s y se recuerda para ese ejercicio. Con ↺ vuelves al del programa.</li>' +
+    '<li><b>Ejercicios por tiempo</b> (plancha…): pulsa <b>▶</b>, cuenta 3, 2, 1 para que te dé tiempo a dejar el móvil y empieza. Pita al terminar.</li>' +
     '<li><b>Tiempo del entreno:</b> pulsa <b>▶ Empezar entreno</b> al llegar. Puedes pausarlo y seguir; sigue contando aunque cierres la app. Al acabar pulsa <b>■ Terminar</b> (dos veces, para no hacerlo sin querer) y el tiempo queda guardado en el historial.</li>' +
-    '<li><b>Ejercicios terminados:</b> se pliegan solos para que veas lo que te queda. Toca el título para abrirlos y revisarlos, y otra vez para cerrarlos.</li>' +
+    '<li><b>Plegar:</b> toca el título de cualquier ejercicio para plegarlo o desplegarlo. Los terminados se pliegan solos.</li>' +
     (cardioName ? '<li><b>' + richText(cardioName) + ' después de las pesas</b>, no antes: así llegas fresco a los ejercicios de fuerza.</li>' : '') +
     '<li><b>Cada 6-8 semanas</b>, haz una semana más suave (2 series por ejercicio en vez de 3-4) para recuperar.</li>' +
     '</ul>';
@@ -1265,7 +1292,7 @@ function render(){
    Al llegar a 0: pitido (3 pitidos cortos de cuenta atrás + aviso final), vibración
    y aviso a pantalla completa. Se calcula con la hora real, así que no se retrasa
    aunque el móvil ralentice la página. */
-let timerInt = null, timerBtn = null, timerEnd = 0, timerTotal = 0, audioCtx = null, beeps = [];
+let timerInt = null, TM = null, audioCtx = null, beeps = [];
 function getAudio(){
   try{
     if (!audioCtx){ const AC = window.AudioContext || window.webkitAudioContext; if (AC) audioCtx = new AC(); }
@@ -1287,75 +1314,104 @@ function beepAt(t, freq, dur, vol){
     beeps.push(o);
   }catch(e){}
 }
-function scheduleBeeps(secs){
-  const ctx = getAudio(); if (!ctx) return;
-  const t0 = ctx.currentTime;
-  for (const k of [3,2,1]) if (secs > k) beepAt(t0 + secs - k, 660, 0.12, 0.25);
-  for (let i=0;i<3;i++) beepAt(t0 + secs + i*0.35, 1046, 0.25, 0.35);
+/* Programa los pitidos de la cuenta atrás activa desde ahora mismo:
+   3-2-1 e «¡Inicio!» si hay preparación, 3-2-1 antes del final y aviso final */
+function scheduleBeeps(){
+  const ctx = getAudio(); if (!ctx || !TM) return;
+  const t0 = ctx.currentTime, rem = (TM.end - Date.now())/1000, preLeft = rem - TM.total;
+  if (preLeft > 0){
+    for (const k of [3,2,1]){ const at = preLeft - k; if (at > -0.05) beepAt(t0 + Math.max(0, at), 660, 0.12, 0.3); }
+    beepAt(t0 + preLeft, 1046, 0.4, 0.4);
+  }
+  for (const k of [3,2,1]) if (rem - k > Math.max(0, preLeft) + 0.5) beepAt(t0 + rem - k, 660, 0.12, 0.25);
+  for (let i=0;i<3;i++) beepAt(t0 + rem + i*0.35, 1046, 0.25, 0.35);
 }
 function cancelBeeps(){ for (const o of beeps){ try{ o.stop(); o.disconnect(); }catch(e){} } beeps = []; }
 const tfmt = s => Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
 
+/* Píldora flotante del reloj: [−] tiempo [+]. Tocar el tiempo lo para. */
 function floatPill(){
   let p = document.getElementById('tpill');
   if (!p){
-    p = document.createElement('button'); p.id = 'tpill'; p.type = 'button';
-    p.setAttribute('aria-live','off');
-    p.addEventListener('click', () => { if (timerBtn) startTimer(timerBtn); });
+    p = document.createElement('div'); p.id = 'tpill';
+    p.innerHTML = '<button type="button" class="tp-step" data-d="-15" aria-label="15 segundos menos">−</button>' +
+      '<button type="button" class="tp-main" aria-live="off"></button>' +
+      '<button type="button" class="tp-step" data-d="15" aria-label="15 segundos más">+</button>';
+    p.querySelector('.tp-main').addEventListener('click', stopTimer);
+    p.querySelectorAll('.tp-step').forEach(b => b.addEventListener('click', () => adjustTimer(Number(b.dataset.d))));
     document.body.appendChild(p);
   }
   return p;
 }
-function showAlarm(){
+function showAlarm(title, sub){
   let a = document.getElementById('talarm');
   if (!a){
     a = document.createElement('button'); a.id = 'talarm'; a.type = 'button';
-    a.innerHTML = '<b>¡Descanso terminado!</b><span>A por la siguiente serie · toca para cerrar</span>';
+    a.innerHTML = '<b></b><span></span>';
     a.addEventListener('click', () => { a.classList.remove('on'); });
     a.setAttribute('role','alert');
     document.body.appendChild(a);
   }
+  a.querySelector('b').textContent = title || '¡Descanso terminado!';
+  a.querySelector('span').textContent = sub || 'A por la siguiente serie · toca para cerrar';
   a.classList.remove('on'); void a.offsetWidth; a.classList.add('on');
   clearTimeout(a._t); a._t = setTimeout(() => a.classList.remove('on'), 8000);
 }
 
 function stopTimer(){
   clearInterval(timerInt); timerInt = null; cancelBeeps();
-  if (timerBtn){ timerBtn.classList.remove('run'); timerBtn.textContent = timerBtn.dataset.label; }
-  timerBtn = null;
+  if (TM && TM.owner) TM.owner.classList.remove('run');
+  TM = null;
   const p = document.getElementById('tpill'); if (p) p.classList.remove('on');
 }
-/* Arranca el descanso desde cero aunque ya hubiera uno en marcha */
-function restartTimer(btn, rest){
-  if (timerInt) stopTimer();
-  startTimer(btn, rest);
+/* Descanso desde cero (al marcar una serie). adjust(d) guarda el cambio de − / + para ese ejercicio */
+function restartTimer(tag, secs, adjust){
+  startTimer(null, secs, {kind:'rest', tag, adjust});
 }
-function startTimer(btn, rest){
-  if (timerInt){ const same = timerBtn === btn || !rest; stopTimer(); if (same) return; }
+/* kind 'rest': descanso. kind 'work': ejercicio por tiempo, con 3 s de preparación */
+function startTimer(owner, secs, opt){
+  opt = opt || {};
+  stopTimer();
   getAudio();   // el navegador solo deja activar el sonido al pulsar un botón
-  const secs = restSecs(rest);
-  timerTotal = secs; timerEnd = Date.now() + secs*1000;
-  if (!btn.dataset.label) btn.dataset.label = btn.textContent;
-  btn.classList.add('run'); timerBtn = btn;
-  scheduleBeeps(secs);
-  const pill = floatPill(); pill.classList.add('on');
-  const tick = () => {
-    const left = Math.max(0, Math.ceil((timerEnd - Date.now())/1000));
-    if (left <= 0){
-      clearInterval(timerInt); timerInt = null; beeps = [];
-      btn.classList.remove('run'); btn.textContent = '¡A por la siguiente!';
-      pill.classList.remove('on'); timerBtn = null;
-      try{ navigator.vibrate && navigator.vibrate([400,150,400,150,600]); }catch(e){}
-      showAlarm();
-      setTimeout(() => { if (!btn.classList.contains('run')) btn.textContent = btn.dataset.label; }, 4000);
-      return;
-    }
-    btn.textContent = tfmt(left);
-    pill.textContent = '⏱ ' + tfmt(left) + '  ·  toca para parar';
-    pill.style.setProperty('--p', ((timerTotal - (timerEnd - Date.now())/1000) / timerTotal * 100).toFixed(1) + '%');
-  };
-  tick();
-  timerInt = setInterval(tick, 250);
+  const kind = opt.kind || 'rest', pre = kind === 'work' ? 3 : 0;
+  TM = { kind, owner, tag:opt.tag, adjust:opt.adjust || null, total:restSecs(secs), end:Date.now() + (pre + restSecs(secs))*1000 };
+  if (owner) owner.classList.add('run');
+  scheduleBeeps();
+  const pill = floatPill(); pill.classList.add('on'); pill.classList.toggle('work', kind === 'work');
+  timerInt = setInterval(tickTimer, 250);
+  tickTimer();
+}
+function tickTimer(){
+  if (!TM) return;
+  const pill = floatPill(), main = pill.querySelector('.tp-main');
+  const left = Math.max(0, Math.ceil((TM.end - Date.now())/1000));
+  if (left <= 0){
+    const kind = TM.kind;
+    clearInterval(timerInt); timerInt = null; beeps = [];
+    if (TM.owner) TM.owner.classList.remove('run');
+    TM = null; pill.classList.remove('on');
+    try{ navigator.vibrate && navigator.vibrate([400,150,400,150,600]); }catch(e){}
+    if (kind === 'work') showAlarm('¡Tiempo!', 'Marca la serie como hecha · toca para cerrar');
+    else showAlarm();
+    return;
+  }
+  if (left > TM.total){            // preparación: 3, 2, 1…
+    main.textContent = (left - TM.total) + '…  prepárate';
+    main.style.setProperty('--p', '0%');
+    return;
+  }
+  const ico = TM.kind === 'work' ? (TM.total - left < 1 ? '¡Inicio! ' : '💪 ') : '⏱ ';
+  main.textContent = ico + tfmt(left) + '  ·  parar';
+  main.style.setProperty('--p', ((TM.total - (TM.end - Date.now())/1000) / TM.total * 100).toFixed(1) + '%');
+}
+/* − / + en el reloj: cambia el tiempo que queda y, en los descansos, lo recuerda para ese ejercicio */
+function adjustTimer(d){
+  if (!TM) return;
+  const leftS = (TM.end - Date.now())/1000;
+  if (leftS + d < 1) d = Math.ceil(1 - leftS);
+  TM.end += d*1000; TM.total = Math.max(1, TM.total + d);
+  if (TM.adjust) TM.adjust(d);
+  cancelBeeps(); scheduleBeeps(); tickTimer();
 }
 
 /* ===================== COPIA DE SEGURIDAD ===================== */
