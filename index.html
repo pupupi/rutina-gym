@@ -152,7 +152,6 @@ details.guide li b{color:var(--ink)}
 #tpill{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);transform:translate(-50%,170%);z-index:20;
   display:flex;align-items:center;gap:6px;padding:6px;border-radius:999px;background:var(--accent);
   box-shadow:0 6px 20px rgba(0,0,0,.3);transition:transform .25s}
-#tpill.work{background:color-mix(in srgb,#000 30%,var(--accent))}
 .tp-main{border:0;border-radius:999px;padding:10px 16px;font:700 1.1rem Barlow,Arial,sans-serif;color:#fff;cursor:pointer;white-space:nowrap;
   min-width:150px;font-variant-numeric:tabular-nums;
   background:linear-gradient(90deg,color-mix(in srgb,#000 25%,var(--accent)) var(--p,0%),transparent var(--p,0%))}
@@ -1377,7 +1376,7 @@ function startTimer(owner, secs, opt){
   TM = { kind, owner, tag:opt.tag, adjust:opt.adjust || null, total:restSecs(secs), end:Date.now() + (pre + restSecs(secs))*1000 };
   if (owner) owner.classList.add('run');
   scheduleBeeps();
-  const pill = floatPill(); pill.classList.add('on'); pill.classList.toggle('work', kind === 'work');
+  const pill = floatPill(); pill.classList.add('on');
   timerInt = setInterval(tickTimer, 250);
   tickTimer();
 }
@@ -1396,12 +1395,11 @@ function tickTimer(){
     return;
   }
   if (left > TM.total){            // preparación: 3, 2, 1…
-    main.textContent = (left - TM.total) + '…  prepárate';
+    main.textContent = '⏱ ' + (left - TM.total);
     main.style.setProperty('--p', '0%');
     return;
   }
-  const ico = TM.kind === 'work' ? (TM.total - left < 1 ? '¡Inicio! ' : '💪 ') : '⏱ ';
-  main.textContent = ico + tfmt(left) + '  ·  parar';
+  main.textContent = '⏱ ' + tfmt(left) + '  ·  parar';
   main.style.setProperty('--p', ((TM.total - (TM.end - Date.now())/1000) / TM.total * 100).toFixed(1) + '%');
 }
 /* − / + en el reloj: cambia el tiempo que queda y, en los descansos, lo recuerda para ese ejercicio */
