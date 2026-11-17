@@ -648,7 +648,7 @@ function lastTime(id){
 /* ===================== CRONÓMETRO DEL ENTRENO =====================
    ses.clk = {acc: ms acumulados, run: momento en que se reanudó (0 si parado), end: terminado}
    Se basa en la hora real, así que sigue contando aunque cierres la app o bloquees el móvil. */
-let clkTick = null;
+let clkTick = null, clockPaint = null;
 const clkMs = c => !c ? 0 : (c.acc || 0) + (c.run ? Date.now() - c.run : 0);
 function fmtClock(ms){
   const t = Math.floor(ms/1000), h = Math.floor(t/3600), m = Math.floor(t%3600/60), sec = t%60;
@@ -830,6 +830,7 @@ function render(){
     clearInterval(clkTick);
     clkTick = setInterval(() => { const c = clk(); if (c && c.run) paint(); }, 1000);
     paint();
+    clockPaint = paint;
     return box;
   }
 
@@ -1191,7 +1192,7 @@ function render(){
     '<li><b>Si no llegas</b> al número bajo del rango en dos sesiones seguidas, baja un escalón de peso.</li>' +
     '<li><b>Descansos:</b> respétalos en los ejercicios grandes (2 min); en los pequeños puedes ir algo más rápido. El reloj de descanso arranca solo al marcar una serie; con <b>−</b> y <b>+</b> en el propio reloj lo cambias de 15 en 15 s y se recuerda para ese ejercicio. Con ↺ vuelves al del programa.</li>' +
     '<li><b>Ejercicios por tiempo</b> (plancha…): pulsa <b>▶</b>, cuenta 3, 2, 1 para que te dé tiempo a dejar el móvil y empieza. Pita al terminar.</li>' +
-    '<li><b>Tiempo del entreno:</b> pulsa <b>▶ Empezar entreno</b> al llegar. Puedes pausarlo y seguir; sigue contando aunque cierres la app. Al acabar pulsa <b>■ Terminar</b> (dos veces, para no hacerlo sin querer) y el tiempo queda guardado en el historial.</li>' +
+    '<li><b>Tiempo del entreno:</b> pulsa <b>▶ Empezar entreno</b> al llegar. Puedes pausarlo y seguir; sigue contando aunque cierres la app. Se para solo al completar la rutina; también puedes pulsar <b>■ Terminar</b> (dos veces, para no hacerlo sin querer). El tiempo queda guardado en el historial.</li>' +
     '<li><b>Plegar:</b> toca el título de cualquier ejercicio para plegarlo o desplegarlo. Los terminados se pliegan solos.</li>' +
     (cardioName ? '<li><b>' + richText(cardioName) + ' después de las pesas</b>, no antes: así llegas fresco a los ejercicios de fuerza.</li>' : '') +
     '<li><b>Cada 6-8 semanas</b>, haz una semana más suave (2 series por ejercicio en vez de 3-4) para recuperar.</li>' +
@@ -1280,6 +1281,13 @@ function render(){
     prog.querySelector('.ptext').textContent = !sc.units ? '—'
       : sc.pct === 100 ? '¡Hecho! 💪'
       : sc.complete + '/' + sc.units + ' · ' + sc.pct + '%';
+    // Rutina completa: se para el cronómetro del entreno
+    const sesNow = state.ses[sesKey(rk)], clk = sesNow && sesNow.clk;
+    if (sc.units && sc.pct === 100 && clk && !clk.end){
+      if (clk.run){ clk.acc += Date.now() - clk.run; clk.run = 0; }
+      clk.end = true; touch(sesNow); scheduleSave();
+      if (clockPaint) clockPaint();
+    }
     // Actualiza la pestaña "TOCA" si cambia la rotación
     const nr = nextRoutine().r;
     document.querySelectorAll('#tabs button').forEach((b, i) => b.classList.toggle('next', ORDER[i] === nr));
